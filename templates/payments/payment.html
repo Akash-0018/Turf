@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Complete Payment - TurfZone{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">Complete Your Payment</h2>
+                    
+                    <div class="booking-details mb-4">
+                        <h4>Booking Details</h4>
+                        <table class="table">
+                            <tr>
+                                <th>Facility:</th>
+                                <td>{{ booking.facility_sport.facility.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Sport:</th>
+                                <td>{{ booking.facility_sport.sport.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Date:</th>
+                                <td>{{ booking.date }}</td>
+                            </tr>
+                            <tr>
+                                <th>Time Slot:</th>
+                                <td>{{ booking.time_slot.get_slot_time_display }}</td>
+                            </tr>
+                            <tr>
+                                <th>Amount:</th>
+                                <td>₹{{ booking.total_price }}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="payment-methods">
+                        <ul class="nav nav-tabs" id="paymentTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="qr-tab" data-bs-toggle="tab" data-bs-target="#qr" type="button">
+                                    QR Code Payment
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="upi-tab" data-bs-toggle="tab" data-bs-target="#upi" type="button">
+                                    UPI Apps
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content mt-4" id="paymentTabContent">
+                            <!-- QR Code Payment -->
+                            <div class="tab-pane fade show active" id="qr" role="tabpanel">
+                                <div class="text-center">
+                                    <img src="{{ payment_settings.qr_code.url }}" alt="Payment QR Code" class="img-fluid mb-3" style="max-width: 300px;">
+                                    <p class="mb-4">Scan this QR code to make payment</p>
+                                </div>
+                            </div>
+
+                            <!-- UPI Apps -->
+                            <div class="tab-pane fade" id="upi" role="tabpanel">
+                                <div class="text-center">
+                                    <h5 class="mb-4">Pay using UPI apps</h5>
+                                    <p class="mb-3">UPI ID: <strong>{{ payment_settings.upi_id }}</strong></p>
+                                    <div class="upi-apps">
+                                        <a href="upi://pay?pa={{ payment_settings.upi_id }}&pn={{ payment_settings.merchant_name|urlencode }}&am={{ booking.total_price }}&cu=INR&tn=TurfZone-{{ booking.id }}" class="btn btn-outline-primary me-2">
+                                            <img src="{% static 'images/gpay-logo.png' %}" alt="Google Pay" height="30">
+                                        </a>
+                                        <a href="phonepe://pay?pa={{ payment_settings.upi_id }}&pn={{ payment_settings.merchant_name|urlencode }}&am={{ booking.total_price }}&cu=INR&tn=TurfZone-{{ booking.id }}" class="btn btn-outline-primary me-2">
+                                            <img src="{% static 'images/phonepe-logo.png' %}" alt="PhonePe" height="30">
+                                        </a>
+                                        <a href="paytm://pay?pa={{ payment_settings.upi_id }}&pn={{ payment_settings.merchant_name|urlencode }}&am={{ booking.total_price }}&cu=INR&tn=TurfZone-{{ booking.id }}" class="btn btn-outline-primary">
+                                            <img src="{% static 'images/paytm-logo.png' %}" alt="Paytm" height="30">
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <form method="post" action="{% url 'confirm-payment' booking.id %}" enctype="multipart/form-data" class="payment-confirmation-form">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="transaction_id" class="form-label">Transaction ID</label>
+                                <input type="text" class="form-control" id="transaction_id" name="transaction_id" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="payment_proof" class="form-label">Payment Screenshot (optional)</label>
+                                <input type="file" class="form-control" id="payment_proof" name="payment_proof" accept="image/*">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Confirm Payment</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <p class="text-muted">Having trouble? <a href="{% url 'contact' %}">Contact us</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentTabs = document.querySelectorAll('#paymentTabs button');
+    paymentTabs.forEach(button => {
+        button.addEventListener('click', function() {
+            paymentTabs.forEach(tab => tab.classList.remove('active'));
+            this.classList.add('active');
+            
+            const target = this.getAttribute('data-bs-target').replace('#', '');
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+            document.getElementById(target).classList.add('show', 'active');
+        });
+    });
+});

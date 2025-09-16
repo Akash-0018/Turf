@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h2>Booking Confirmation</h2>
+    <p>Dear {{ booking.user.get_full_name }},</p>
+    
+    <p>Your booking has been confirmed! Here are the details:</p>
+    
+    <h3>Booking Details:</h3>
+    <ul>
+        <li><strong>Booking ID:</strong> {{ booking.id }}</li>
+        <li><strong>Facility:</strong> {{ booking.facility_sport.facility.name }}</li>
+        <li><strong>Sport:</strong> {{ booking.facility_sport.sport.name }}</li>
+        <li><strong>Date:</strong> {{ booking.date }}</li>
+        <li><strong>Time Slot:</strong> {{ booking.time_slot.get_slot_time_display }}</li>
+        <li><strong>Total Price:</strong> ₹{{ booking.total_price }}</li>
+    </ul>
+    
+    <h3>Important Information:</h3>
+    <ul>
+        <li>Please arrive 10 minutes before your slot time</li>
+        <li>Bring appropriate sports gear and equipment</li>
+        <li>Follow facility rules and guidelines</li>
+        <li>For cancellations, please contact us at least 24 hours before the slot time</li>
+    </ul>
+    
+    <p>If you have any questions, feel free to contact us.</p>
+    
+    <p>Thank you for choosing TurfZone!</p>
+</body>
+</html>

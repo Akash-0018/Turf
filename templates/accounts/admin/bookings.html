@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin - Bookings{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Booking Management</h2>
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">All Bookings</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Facility</th>
+                            <th>Sport</th>
+                            <th>Date</th>
+                            <th>Time Slot</th>
+                            <th>Status</th>
+                            <th>Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr>
+                            <td>{{ booking.user.get_full_name|default:booking.user.username }}</td>
+                            <td>{{ booking.facility_sport.facility.name }}</td>
+                            <td>{{ booking.facility_sport.sport.name }}</td>
+                            <td>{{ booking.date }}</td>
+                            <td>{{ booking.time_slot }}</td>
+                            <td>
+                                <span class="badge {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ booking.status|title }}
+                                </span>
+                            </td>
+                            <td>₹{{ booking.total_price }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="#" class="btn btn-sm btn-info">View</a>
+                                    {% if booking.status == 'pending' %}
+                                    <a href="#" class="btn btn-sm btn-success">Confirm</a>
+                                    <a href="#" class="btn btn-sm btn-danger">Reject</a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">No bookings found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

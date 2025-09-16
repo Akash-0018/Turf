@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Careers - TurfZone{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="text-center mb-4">Join Our Team</h1>
+    
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h3>Work With Us</h3>
+                    <p>Join TurfZone and be part of a dynamic team that's passionate about sports and customer service. We're always looking for talented individuals who can contribute to our mission of making sports facilities accessible to everyone.</p>
+                    
+                    <h4 class="mt-4">Why Work With Us?</h4>
+                    <ul>
+                        <li>Dynamic and energetic work environment</li>
+                        <li>Competitive salary and benefits</li>
+                        <li>Growth opportunities</li>
+                        <li>Sports-centric culture</li>
+                        <li>Work-life balance</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-4">Current Openings</h3>
+                    
+                    <div class="job-listing">
+                        <h4>Facility Manager</h4>
+                        <p><strong>Location:</strong> Mumbai</p>
+                        <p><strong>Experience:</strong> 3+ years</p>
+                        <p class="mb-3">Responsible for overseeing day-to-day operations of our sports facilities, maintaining quality standards, and ensuring customer satisfaction.</p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#applyModal">Apply Now</button>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="job-listing">
+                        <h4>Customer Support Executive</h4>
+                        <p><strong>Location:</strong> Mumbai</p>
+                        <p><strong>Experience:</strong> 1+ years</p>
+                        <p class="mb-3">Handle customer inquiries, manage bookings, and provide excellent customer service through multiple channels.</p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#applyModal">Apply Now</button>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="job-listing">
+                        <h4>Sports Coach</h4>
+                        <p><strong>Location:</strong> Mumbai</p>
+                        <p><strong>Experience:</strong> 2+ years</p>
+                        <p class="mb-3">Conduct training sessions, develop training programs, and mentor aspiring athletes in various sports.</p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#applyModal">Apply Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Application Modal -->
+<div class="modal fade" id="applyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Apply for Position</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="jobApplicationForm">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone</label>
+                        <input type="tel" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Resume</label>
+                        <input type="file" class="form-control" accept=".pdf,.doc,.docx" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cover Letter</label>
+                        <textarea class="form-control" rows="4" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" form="jobApplicationForm" class="btn btn-primary">Submit Application</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

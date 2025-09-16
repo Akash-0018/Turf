@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Process Payment - TurfZone{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-credit-card me-2"></i>Process Payment
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="booking-summary mb-4">
+                        <h6 class="fw-bold">Booking Details</h6>
+                        <div class="info-item">
+                            <span class="label">Facility:</span>
+                            <span class="value">{{ booking.facility_sport.facility.name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Sport:</span>
+                            <span class="value">{{ booking.facility_sport.sport.name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Date:</span>
+                            <span class="value">{{ booking.date }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Time:</span>
+                            <span class="value">{{ booking.time_slot.get_slot_time_display }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Amount:</span>
+                            <span class="value fw-bold">₹{{ booking.total_price }}</span>
+                        </div>
+                    </div>
+
+                    <form method="post" class="payment-form">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Card Number</label>
+                            <input type="text" class="form-control" placeholder="1234 5678 9012 3456" required>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Expiry Date</label>
+                                <input type="text" class="form-control" placeholder="MM/YY" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">CVV</label>
+                                <input type="text" class="form-control" placeholder="123" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-lock me-2"></i>Pay ₹{{ booking.total_price }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.label {
+    color: #6c757d;
+}
+
+.value {
+    font-weight: 500;
+}
+
+.payment-form {
+    border-top: 1px solid #dee2e6;
+    padding-top: 1.5rem;
+    margin-top: 1rem;
+}
+</style>
+{% endblock %}

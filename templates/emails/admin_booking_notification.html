@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h2>New Booking Alert</h2>
+    <p>A new booking has been made:</p>
+    
+    <h3>Booking Details:</h3>
+    <ul>
+        <li><strong>Booking ID:</strong> {{ booking.id }}</li>
+        <li><strong>Facility:</strong> {{ booking.facility_sport.facility.name }}</li>
+        <li><strong>Sport:</strong> {{ booking.facility_sport.sport.name }}</li>
+        <li><strong>Date:</strong> {{ booking.date }}</li>
+        <li><strong>Time Slot:</strong> {{ booking.time_slot.get_slot_time_display }}</li>
+        <li><strong>Total Price:</strong> ₹{{ booking.total_price }}</li>
+    </ul>
+    
+    <h3>User Information:</h3>
+    <ul>
+        <li><strong>Name:</strong> {{ booking.user.get_full_name }}</li>
+        <li><strong>Email:</strong> {{ booking.user.email }}</li>
+        <li><strong>Phone:</strong> {{ booking.user.phone }}</li>
+    </ul>
+    
+    <p>Please review and confirm this booking through the admin dashboard.</p>
+</body>
+</html>

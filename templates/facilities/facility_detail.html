@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ facility.name }} - TurfZone{% endblock %}
+
+{% block content %}
+<div class="facility-detail-page animate-fade-in">
+    <div class="facility-header">
+        {% if facility.image %}
+            <img src="{{ facility.image.url }}" alt="{{ facility.name }}" class="facility-image">
+        {% else %}
+            <img src="{% static 'images/default-facility.jpg' %}" alt="{{ facility.name }}" class="facility-image">
+        {% endif %}
+        <div class="facility-info">
+            <h1>{{ facility.name }}</h1>
+            <p class="sports-type">{{ facility.sports_type }}</p>
+            <p class="description">{{ facility.description }}</p>
+            <p class="capacity">Maximum Capacity: {{ facility.capacity }} people</p>
+        </div>
+    </div>
+
+    <div class="booking-section">
+        <h2>Book This Facility</h2>
+        {% if user.is_authenticated %}
+        <form class="booking-form" method="post" action="{% url 'booking-create' %}">
+            {% csrf_token %}
+            <input type="hidden" name="facility" value="{{ facility.id }}">
+            
+            <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" id="date" name="date" required min="{{ today|date:'Y-m-d' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="time-slot">Time Slot</label>
+                <select id="time-slot" name="time_slot" required>
+                    <option value="">Select a time slot</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="booking-type">Booking Type</label>
+                <select id="booking-type" name="booking_type" required>
+                    <option value="individual">Individual</option>
+                    <option value="team">Team</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="team-size-group" style="display: none;">
+                <label for="team-size">Team Size</label>
+                <input type="number" id="team-size" name="team_size" min="2" max="{{ facility.capacity }}">
+            </div>
+            
+            <div class="pricing-info">
+                <h3>Pricing Plans</h3>
+                {% for plan in pricing_plans %}
+                <div class="price-card">
+                    <h4>{{ plan.name }}</h4>
+                    <p class="timing">{{ plan.get_timing_type_display }}</p>
+                    <p class="time">{{ plan.start_time|time }} - {{ plan.end_time|time }}</p>
+                    <p class="price">₹{{ plan.price_per_hour }} per hour</p>
+                    {% if plan.discount_percentage > 0 %}
+                    <p class="discount">{{ plan.discount_percentage }}% off</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Book Now</button>
+        </form>
+        {% else %}
+        <div class="login-prompt">
+            <p>Please <a href="{% url 'login' %}?next={{ request.path }}">login</a> to book this facility.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="reviews-section mt-5">
+        <div class="container">
+            <h2 class="section-title">
+                <i class="fas fa-star text-warning me-2"></i>Reviews
+            </h2>
+
+            <div class="row">
+                <!-- Review Stats -->
+                <div class="col-md-4">
+                    <div class="review-stats card">
+                        <div class="card-body">
+                            <h3 class="average-rating">
+                                {{ facility.reviews.all|length|default:0 }}
+                                <small>reviews</small>
+                            </h3>
+                            <div class="rating-summary">
+                                {% with total_rating=0 %}
+                                    {% for review in facility.reviews.all %}
+                                        {% with total_rating=total_rating|add:review.rating %}{% endwith %}
+                                    {% endfor %}
+                                    {% with avg_rating=total_rating|default:0|divisibleby:facility.reviews.count %}
+                                        <div class="stars">
+                                            {% for i in "12345"|make_list %}
+                                                <i class="fas fa-star {% if forloop.counter <= avg_rating %}text-warning{% else %}text-muted{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <p class="rating-text">{{ avg_rating|floatformat:1 }} out of 5</p>
+                                    {% endwith %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review List -->
+                <div class="col-md-8">
+                    {% if facility.reviews.all %}
+                        {% for review in facility.reviews.all %}
+                            <div class="review-card card mb-3 {% if review.is_featured %}featured{% endif %}">
+                                <div class="card-body">
+                                    <div class="review-header d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h5 class="mb-0">{{ review.user.get_full_name|default:review.user.username }}</h5>
+                                            <div class="stars small">
+                                                {% for i in "12345"|make_list %}
+                                                    <i class="fas fa-star {% if forloop.counter <= review.rating %}text-warning{% else %}text-muted{% endif %}"></i>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">{{ review.created_at|timesince }} ago</small>
+                                    </div>
+                                    <p class="review-text mt-3 mb-0">{{ review.review_text }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-comment-alt fa-3x text-muted mb-3"></i>
+                            <h5>No Reviews Yet</h5>
+                            <p class="text-muted">Be the first to review this facility!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+<style>
+/* Review Section Styles */
+.reviews-section {
+    background-color: #f8f9fa;
+    padding: 3rem 0;
+}
+
+.section-title {
+    margin-bottom: 2rem;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.review-stats {
+    text-align: center;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+}
+
+.average-rating {
+    font-size: 3rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.average-rating small {
+    font-size: 1rem;
+    color: #6c757d;
+    display: block;
+}
+
+.rating-summary .stars {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.rating-text {
+    color: #6c757d;
+    margin: 0;
+}
+
+.review-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease;
+}
+
+.review-card:hover {
+    transform: translateY(-2px);
+}
+
+.review-card.featured {
+    border-left: 4px solid #ffc107;
+}
+
+.review-header .stars {
+    color: #ffc107;
+}
+
+.review-text {
+    color: #495057;
+    line-height: 1.6;
+}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const bookingType = document.getElementById('booking-type');
+    const teamSizeGroup = document.getElementById('team-size-group');
+    
+    bookingType.addEventListener('change', function() {
+        teamSizeGroup.style.display = this.value === 'team' ? 'block' : 'none';
+    });
+    
+    // Date and time slot handling
+    const dateInput = document.getElementById('date');
+    const timeSlotSelect = document.getElementById('time-slot');
+    
+    dateInput.addEventListener('change', async function() {
+        const date = this.value;
+        try {
+            const response = await fetch(`/api/facilities/{{ facility.id }}/availability/?date=${date}`);
+            const data = await response.json();
+            updateTimeSlots(data.bookings);
+        } catch (error) {
+            console.error('Error fetching availability:', error);
+        }
+    });
+    
+    function updateTimeSlots(bookings) {
+        timeSlotSelect.innerHTML = '<option value="">Select a time slot</option>';
+        
+        // Generate time slots (modify based on your business hours)
+        const slots = generateTimeSlots('06:00', '23:00', 60); // 1-hour slots
+        
+        slots.forEach(slot => {
+            if (!isSlotBooked(slot, bookings)) {
+                const option = document.createElement('option');
+                option.value = slot.start;
+                option.textContent = `${slot.start} - ${slot.end}`;
+                timeSlotSelect.appendChild(option);
+            }
+        });
+    }
+    
+    function generateTimeSlots(start, end, intervalMinutes) {
+        const slots = [];
+        let currentTime = new Date(`2000-01-01 ${start}`);
+        const endTime = new Date(`2000-01-01 ${end}`);
+        
+        while (currentTime < endTime) {
+            const startStr = currentTime.toTimeString().slice(0, 5);
+            currentTime.setMinutes(currentTime.getMinutes() + intervalMinutes);
+            const endStr = currentTime.toTimeString().slice(0, 5);
+            slots.push({ start: startStr, end: endStr });
+        }
+        
+        return slots;
+    }
+    
+    function isSlotBooked(slot, bookings) {
+        return bookings.some(booking => {
+            const bookingStart = booking.start_time.slice(0, 5);
+            const bookingEnd = booking.end_time.slice(0, 5);
+            return (slot.start >= bookingStart && slot.start < bookingEnd) ||
+                   (slot.end > bookingStart && slot.end <= bookingEnd);
+        });
+    }
+});
+</script>
+{% endblock %}

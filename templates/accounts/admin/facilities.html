@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin - Facilities{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Facility Management</h2>
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">All Facilities</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Location</th>
+                            <th>Total Bookings</th>
+                            <th>Revenue</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for facility in facilities %}
+                        <tr>
+                            <td>{{ facility.name }}</td>
+                            <td>{{ facility.location }}</td>
+                            <td>{{ facility.booking_count }}</td>
+                            <td>₹{{ facility.revenue|default:"0.00" }}</td>
+                            <td>
+                                {% for sport in facility.sports.all %}
+                                <span class="badge {% if sport.is_available %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ sport.sport.name }}
+                                </span>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-info">View Details</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No facilities found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

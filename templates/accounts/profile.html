@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- View Profile Section -->
+    <div id="view-profile" class="profile-section">
+        <div class="profile-header">
+            <h2>My Profile</h2>
+            <a href="{% url 'edit-profile' %}" class="btn btn-primary">
+                <i class="fas fa-edit me-2"></i>Edit Profile
+            </a>
+        </div>
+
+        <div class="profile-details">
+            <div class="profile-image">
+                {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="profile-picture">
+                {% else %}
+                    <div class="profile-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="profile-info">
+                <div class="info-group">
+                    <label>Full Name</label>
+                    <p>{{ user.get_full_name|default:"Not set" }}</p>
+                </div>
+                <div class="info-group">
+                    <label>Email</label>
+                    <p>{{ user.email }}</p>
+                </div>
+                <div class="info-group">
+                    <label>Phone</label>
+                    <p>{{ user.phone|default:"Not set" }}</p>
+                </div>
+                <div class="info-group">
+                    <label>Member Since</label>
+                    <p>{{ user.date_joined|date:"F j, Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Section -->
+    <div id="edit-profile" class="profile-section" style="display: none;">
+        <div class="profile-header">
+            <h2>Edit Profile</h2>
+            <button onclick="hideEditProfile()" class="btn btn-secondary">
+                <i class="fas fa-times me-2"></i>Cancel
+            </button>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data" class="profile-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="profile-actions">
+        <a href="{% url 'user-dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+        <a href="{% url 'password_reset' %}" class="btn btn-outline">
+            <i class="fas fa-key me-2"></i>Change Password
+        </a>
+    </div>
+</div>
+
+<style>
+.profile-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.profile-details {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.profile-image {
+    text-align: center;
+}
+
+.profile-picture {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--primary-color);
+}
+
+.profile-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+}
+
+.profile-info {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.info-group {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+}
+
+.info-group label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.info-group p {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.profile-form {
+    margin-top: 2rem;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn i {
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.btn-secondary {
+    background: var(--background-light);
+    color: var(--text-primary);
+    border: none;
+}
+
+.btn-secondary:hover {
+    background: var(--border-color);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-outline:hover {
+    background: var(--background-light);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+</style>
+
+<script>
+function showEditProfile() {
+    document.getElementById('view-profile').style.display = 'none';
+    document.getElementById('edit-profile').style.display = 'block';
+}
+
+function hideEditProfile() {
+    document.getElementById('edit-profile').style.display = 'none';
+    document.getElementById('view-profile').style.display = 'block';
+}
+</script>
+{% endblock %}

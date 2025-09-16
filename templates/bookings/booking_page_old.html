@@ -1,0 +1,499 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book a Turf - TurfZone{% endblock %}
+
+{% block content %}
+<div class="booking-page">
+    <!-- Search and Filter Section -->
+    <div class="search-section py-4 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="searchFacility" class="form-label">Search Facilities</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" id="searchFacility" class="form-control" placeholder="Search by name...">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="sportType" class="form-label">Sport Type</label>
+                        <select id="sportType" class="form-select">
+                            <option value="">All Sports</option>
+                            {% for sport in sports %}
+                            <option value="{{ sport.id }}">{{ sport.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="bookingDate" class="form-label">Date</label>
+                        <input type="date" id="bookingDate" class="form-control" min="{{ today|date:'Y-m-d' }}">
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button id="searchBtn" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-2"></i>Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Facilities Grid -->
+    <div class="facilities-section py-5">
+        <div class="container">
+            <div class="row" id="facilitiesGrid">
+                {% for facility in facilities %}
+                <div class="col-md-6 col-lg-4 mb-4 facility-card" 
+                     data-name="{{ facility.name|lower }}" 
+                     data-sports="{% for sport in facility.sports.all %}{{ sport.sport.name|lower }} {% endfor %}">
+                    <div class="card h-100 shadow-sm">
+                        {% if facility.images.exists %}
+                        <img src="{{ facility.images.first.image.url }}" class="card-img-top facility-image" alt="{{ facility.name }}">
+                        {% else %}
+                        <img src="{% static 'images/default-facility.jpg' %}" class="card-img-top facility-image" alt="{{ facility.name }}">
+                        {% endif %}
+                        
+                        <div class="card-body">
+                            <h5 class="card-title">{{ facility.name }}</h5>
+                            <div class="ratings mb-2">
+                                {% with avg_rating=facility.reviews.all|length|default:0 %}
+                                {% if avg_rating > 0 %}
+                                <div class="stars">
+                                    {% for i in "12345"|make_list %}
+                                    <i class="fas fa-star {% if forloop.counter <= avg_rating %}text-warning{% else %}text-muted{% endif %}"></i>
+                                    {% endfor %}
+                                </div>
+                                <small class="text-muted">({{ facility.reviews.count }} reviews)</small>
+                                {% else %}
+                                <small class="text-muted">No reviews yet</small>
+                                {% endif %}
+                                {% endwith %}
+                            </div>
+                            <p class="card-text">{{ facility.description|truncatechars:100 }}</p>
+                            
+                            <div class="sports-list">
+                                {% for facility_sport in facility.sports.all %}
+                                <span class="badge bg-primary">
+                                    {{ facility_sport.sport.name }} - ₹{{ facility_sport.price_per_slot }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer bg-white border-top-0">
+                            <button class="btn btn-primary w-100 view-slots" data-facility-id="{{ facility.id }}">
+                                <i class="fas fa-calendar-alt me-2"></i>View Available Slots
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h4>No Facilities Found</h4>
+                    <p class="text-muted">Try adjusting your search criteria</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Time Slots Modal -->
+<div class="modal fade" id="slotsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header gradient-bg text-white">
+                <div class="modal-title-wrapper">
+                    <h5 class="modal-title">
+                        <i class="fas fa-clock me-2"></i>Available Time Slots
+                    </h5>
+                    <p class="modal-subtitle mb-0">Select your preferred time slot 🕒</p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="slotsGrid" class="slots-grid">
+                    <!-- Slots will be loaded here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Booking Confirmation Modal -->
+<div class="modal fade" id="bookingModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header gradient-bg text-white">
+                <div class="modal-title-wrapper">
+                    <h5 class="modal-title">
+                        <i class="fas fa-calendar-check me-2"></i>Confirm Your Booking
+                    </h5>
+                    <p class="modal-subtitle mb-0">Almost there! Review your booking details 📋</p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="bookingForm" method="post" action="{% url 'booking-create' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="facility_sport" id="facilitySportInput">
+                    <input type="hidden" name="time_slot" id="timeSlotInput">
+                    <input type="hidden" name="date" id="dateInput">
+                    
+                    <div class="booking-summary">
+                        <div class="summary-header">
+                            <i class="fas fa-receipt me-2"></i>
+                            <h6 class="summary-title mb-0">Booking Summary</h6>
+                        </div>
+                        
+                        <div class="summary-content">
+                            <div class="summary-item">
+                                <div class="item-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div class="item-details">
+                                    <span class="label">Facility & Sport</span>
+                                    <span class="value" id="summaryFacilitySport"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="summary-item">
+                                <div class="item-icon">
+                                    <i class="fas fa-calendar-day"></i>
+                                </div>
+                                <div class="item-details">
+                                    <span class="label">Date</span>
+                                    <span class="value" id="summaryDate"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="summary-item">
+                                <div class="item-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="item-details">
+                                    <span class="label">Time</span>
+                                    <span class="value" id="summaryTime"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="price-summary">
+                                <div class="price-row">
+                                    <span>Base Price</span>
+                                    <span class="amount">₹<span id="summaryPrice"></span></span>
+                                </div>
+                                <div class="price-row total">
+                                    <span>Final Price</span>
+                                    <span class="amount">₹<span id="summaryFinalPrice"></span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button type="submit" form="bookingForm" class="btn btn-primary">
+                    <i class="fas fa-check me-2"></i>Confirm Booking
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.booking-page {
+    min-height: calc(100vh - 60px);
+}
+
+.search-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+}
+
+.facility-card {
+    transition: transform 0.2s ease;
+}
+
+.facility-card:hover {
+    transform: translateY(-5px);
+}
+
+.facility-image {
+    height: 200px;
+    object-fit: cover;
+}
+
+.sports-list {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.slot-card {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.slot-card:hover:not(.booked) {
+    border-color: #2196f3;
+    transform: scale(1.05);
+}
+
+.slot-card.booked {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.slot-card.selected {
+    border-color: #2196f3;
+    background-color: #e3f2fd;
+}
+
+.booking-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.summary-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.summary-item i {
+    font-size: 1.25rem;
+    margin-top: 0.25rem;
+}
+
+.summary-item label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.summary-item p {
+    margin: 0;
+    font-weight: 500;
+}
+
+.stars {
+    color: #ffc107;
+}
+
+/* Loading States */
+.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #2196f3;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 1;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchFacility');
+    const sportSelect = document.getElementById('sportType');
+    const dateInput = document.getElementById('bookingDate');
+    const searchBtn = document.getElementById('searchBtn');
+    const facilitiesGrid = document.getElementById('facilitiesGrid');
+    const slotsModal = new bootstrap.Modal(document.getElementById('slotsModal'));
+    const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
+    
+    // Set min date to today
+    dateInput.min = new Date().toISOString().split('T')[0];
+    dateInput.value = new Date().toISOString().split('T')[0];
+    
+    // Filter facilities based on search and sport type
+    function filterFacilities() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedSport = sportSelect.value.toLowerCase();
+        const cards = document.querySelectorAll('.facility-card');
+        
+        cards.forEach(card => {
+            const name = card.dataset.name;
+            const sports = card.dataset.sports;
+            
+            const matchesSearch = name.includes(searchTerm);
+            const matchesSport = !selectedSport || sports.includes(selectedSport);
+            
+            card.style.display = matchesSearch && matchesSport ? 'block' : 'none';
+        });
+    }
+    
+    // Event listeners for filtering
+    searchInput.addEventListener('input', filterFacilities);
+    sportSelect.addEventListener('change', filterFacilities);
+    searchBtn.addEventListener('click', filterFacilities);
+    
+    // Handle slot viewing
+    document.querySelectorAll('.view-slots').forEach(button => {
+        button.addEventListener('click', async function() {
+            const facilityId = this.dataset.facilityId;
+            const date = dateInput.value;
+            
+            // Show loading state
+            this.classList.add('loading');
+            
+            try {
+                const response = await fetch(`/bookings/get-slots/?facility_id=${facilityId}&date=${date}`);
+                const data = await response.json();
+                
+                // Update slots grid
+                document.getElementById('slotsGrid').innerHTML = data.html;
+                
+                // Initialize slot selection
+                initializeSlotSelection(facilityId);
+                
+                slotsModal.show();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to load time slots. Please try again.');
+            } finally {
+                this.classList.remove('loading');
+            }
+        });
+    });
+    
+    function initializeSlotSelection(facilityId) {
+        const slots = document.querySelectorAll('.slot-card:not(.booked)');
+        
+        slots.forEach(slot => {
+            slot.addEventListener('click', function() {
+                // Remove previous selection
+                document.querySelectorAll('.slot-card.selected').forEach(s => s.classList.remove('selected'));
+                
+                // Add new selection
+                this.classList.add('selected');
+                
+                // Show booking confirmation
+                const slotId = this.dataset.slotId;
+                const slotTime = this.dataset.slotTime;
+                const facilitySport = this.dataset.facilitySport;
+                const price = this.dataset.price;
+                
+                // Update booking form
+                document.getElementById('facilitySportInput').value = facilitySport;
+                document.getElementById('timeSlotInput').value = slotId;
+                document.getElementById('dateInput').value = dateInput.value;
+                
+                // Update summary
+                document.getElementById('summaryFacilitySport').textContent = this.dataset.facilityName;
+                document.getElementById('summaryDate').textContent = new Date(dateInput.value).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                document.getElementById('summaryTime').textContent = slotTime;
+                document.getElementById('summaryPrice').textContent = `₹${price}`;
+                
+                // Show booking modal
+                slotsModal.hide();
+                bookingModal.show();
+            });
+        });
+    }
+    
+    // Handle booking form submission
+    document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        
+        try {
+            const response = await fetch(this.action, {
+                method: 'POST',
+                body: new FormData(this),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                bookingModal.hide();
+                
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show';
+                alert.innerHTML = `
+                    <i class="fas fa-check-circle me-2"></i>Booking created successfully!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.querySelector('.booking-page').prepend(alert);
+                
+                // Redirect to payment page
+                setTimeout(() => {
+                    window.location.href = data.redirect_url;
+                }, 1500);
+            } else {
+                throw new Error(data.message || 'Booking failed');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.message || 'Failed to create booking. Please try again.');
+            
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Confirm Booking';
+        }
+    });
+});
+</script>
+{% endblock %}

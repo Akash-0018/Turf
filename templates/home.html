@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}TurfZone - Your Premium Sports Turf Booking Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .offers-section .offer-card {
+        transition: transform 0.3s ease;
+        background: white;
+        min-height: 280px;
+    }
+    
+    .offers-section .offer-card:hover {
+        transform: translateY(-10px);
+    }
+    
+    .offers-section .discount-badge {
+        transform: rotate(0);
+        transition: transform 0.3s ease;
+    }
+    
+    .offers-section .offer-card:hover .discount-badge {
+        transform: rotate(-5deg) scale(1.05);
+    }
+    
+    .offers-section .card-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    
+    .offers-section .card-text {
+        font-size: 1.1rem;
+    }
+    
+    .offers-section .validity {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .swiper-slide {
+        height: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include "includes/review_modal.html" %}
+<!-- Hero Section with Image Carousel -->
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="swiper hero-swiper">
+        <div class="swiper-wrapper">
+            {% for image in turf.images.all %}
+            <div class="swiper-slide">
+                <img src="{{ image.image.url }}" alt="{{ turf.name }}" class="hero-image">
+                <div class="hero-overlay"></div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="swiper-pagination"></div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+    </div>
+    <div class="hero-content" data-aos="fade-up">
+        <h1 class="hero-title">TurfZone</h1>
+        <p class="hero-subtitle">Premium Sports Facilities</p>
+        <div class="hero-description">
+            <p>Experience world-class sports facilities in Mumbai Central featuring state-of-the-art amenities.</p>
+            <p>Perfect for football, cricket, and other sports activities.</p>
+        </div>
+        <div class="location-badge">
+            <i class="fas fa-map-marker-alt"></i> Mumbai Central
+        </div>
+        <div class="hero-cta">
+            <a href="{% url 'bookings' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-calendar-alt me-2"></i>Book Now
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Available Slots Section -->
+<section class="slots-section py-5">
+    <div class="container">
+        <h2 class="section-title" data-aos="fade-up">Available Slots</h2>
+        <div class="slots-container" data-aos="fade-up" data-aos-delay="100">
+            {% include "includes/slots_preview.html" %}
+        </div>
+    </div>
+</section>
+
+<!-- Weather and Live Activity Section -->
+<section class="weather-activity-section py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <!-- Weather Widget -->
+            <div class="col-md-4" data-aos="fade-right">
+                <div class="weather-widget card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title">Current Weather</h3>
+                        <div class="weather-info">
+                            <i class="weather-icon"></i>
+                            <div class="temperature">{{ weather.temperature }}°C</div>
+                            <div class="conditions">{{ weather.conditions }}</div>
+                            <div class="humidity">Humidity: {{ weather.humidity }}%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Live Activity Feed -->
+            <div class="col-md-8" data-aos="fade-left">
+                <div class="activity-feed card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title">Live Activity</h3>
+                        <div class="activity-list">
+                            {% for activity in activities %}
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    <i class="fas {{ activity.get_icon }}"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <p>{{ activity.message }}</p>
+                                    <small>{{ activity.timestamp|timesince }} ago</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Sports Available Section -->
+<section class="sports-section py-5">
+    <div class="container">
+        <h2 class="section-title" data-aos="fade-up">Available Sports</h2>
+        <div class="row">
+            {% for sport in turf_sports %}
+            <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter|multiply:100 }}">
+                <div class="sport-card card h-100">
+                    <div class="card-body text-center">
+                        {% if sport.sport.icon %}
+                        <img src="{{ sport.sport.icon.url }}" alt="{{ sport.sport.name }}" class="sport-icon mb-3">
+                        {% endif %}
+                        <h4 class="card-title">{{ sport.sport.name }}</h4>
+                        <p class="price">₹{{ sport.price_per_slot }}/slot</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Current Offers Section -->
+<section class="offers-section py-5 bg-light">
+    <div class="container">
+        <h2 class="section-title" data-aos="fade-up">Current Offers</h2>
+        <div class="swiper offers-swiper">
+            <div class="swiper-wrapper">
+                {% for offer in offers %}
+                <div class="swiper-slide" data-aos="fade-up" data-aos-delay="{{ forloop.counter|multiply:100 }}">
+                    <div class="offer-card card shadow-sm h-100 border-0">
+                        <div class="card-body position-relative">
+                            <div class="discount-badge position-absolute top-0 end-0 bg-danger text-white py-2 px-3 rounded-bottom">
+                                <h3 class="mb-0 fw-bold">{{ offer.discount_percentage }}% OFF</h3>
+                            </div>
+                            <h4 class="card-title mt-4 mb-3">{{ offer.title }}</h4>
+                            <p class="card-text text-muted mb-4">{{ offer.description }}</p>
+                            <div class="d-flex align-items-center mt-auto text-primary">
+                                <i class="fas fa-clock me-2"></i>
+                                <p class="validity mb-0">Valid till: {{ offer.end_date|date }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-tag fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No current offers available</p>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonials-section py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="section-title mb-0" data-aos="fade-up">What Our Users Say</h2>
+            <div class="overall-rating" data-aos="fade-up">
+                <span class="h4 me-2">{{ facility_rating|floatformat:1 }}</span>
+                {% for i in "12345"|make_list %}
+                <i class="fas fa-star {% if forloop.counter <= facility_rating %}text-warning{% else %}text-muted{% endif %}"></i>
+                {% endfor %}
+            </div>
+            {% if request.user.is_authenticated %}
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                <i class="fas fa-edit me-2"></i>Write a Review
+            </button>
+            {% endif %}
+        </div>
+        <div class="swiper testimonials-swiper">
+            <div class="swiper-wrapper">
+                {% for review in featured_reviews %}
+                <div class="swiper-slide" data-aos="fade-up" data-aos-delay="{{ forloop.counter|multiply:100 }}">
+                    <div class="testimonial-card card">
+                        <div class="card-body">
+                            <div class="rating mb-3">
+                                {% for i in "12345"|make_list %}
+                                <i class="fas fa-star {% if forloop.counter <= review.rating %}text-warning{% else %}text-muted{% endif %}"></i>
+                                {% endfor %}
+                            </div>
+                            <p class="review-text">{{ review.review_text }}</p>
+                            <div class="reviewer-info">
+                                {% if review.user.profile_picture %}
+                                <img src="{{ review.user.profile_picture.url }}" alt="{{ review.user.username }}" class="reviewer-pic">
+                                {% endif %}
+                                <div class="reviewer-name">{{ review.user.get_full_name }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Hero Swiper
+    new Swiper('.hero-swiper', {
+        loop: true,
+        autoplay: {
+            delay: 5000,
+        },
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+        },
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
+    });
+
+    // Initialize Offers Swiper
+    new Swiper('.offers-swiper', {
+        slidesPerView: 1,
+        spaceBetween: 20,
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+        },
+        breakpoints: {
+            640: {
+                slidesPerView: 2,
+            },
+            1024: {
+                slidesPerView: 3,
+            },
+        },
+    });
+
+    // Initialize Testimonials Swiper
+    new Swiper('.testimonials-swiper', {
+        slidesPerView: 1,
+        spaceBetween: 30,
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+        },
+        breakpoints: {
+            768: {
+                slidesPerView: 2,
+            },
+            1024: {
+                slidesPerView: 3,
+            },
+        },
+    });
+
+    // Slots preview functionality is now handled in slots_preview.html
+});
+</script>
+{% endblock %}

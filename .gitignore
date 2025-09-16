@@ -1,0 +1,138 @@
+# Python
+*.py[cod]
+__pycache__/
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.env
+.venv
+env.bak/
+venv.bak/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+static/admin/
+static/rest_framework/
+
+# If you're using collectstatic, you might want to ignore the static root
+static_root/
+staticfiles/
+
+# IDE - Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+.history/
+
+# IDE - PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+
+# Operating System
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+media/facilities/*
+!media/facilities/.gitkeep
+media/facility_images/*
+!media/facility_images/.gitkeep
+media/payment_qr/*
+!media/payment_qr/.gitkeep
+media/site/*
+!media/site/.gitkeep
+media/sport_icons/*
+!media/sport_icons/.gitkeep
+media/sports/*
+!media/sports/.gitkeep
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Compiled files
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.mo
+*.pot
+
+# Coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite3
+
+# Migration files - uncomment if you want to ignore migrations
+# */migrations/*
+# !*/migrations/__init__.py
+
+# Local development settings
+local_settings.py
+
+# Production files
+production_settings.py
+production.py
+
+# Backup files
+*.bak
+*.swp
+*~
+
+# Project specific secrets
+secrets.json
+config.json
+credentials.json

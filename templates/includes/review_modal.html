@@ -1,0 +1,144 @@
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reviewModalLabel">Write a Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="reviewForm" action="{% url 'review-create' %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="rating-input mb-3">
+                        <label class="form-label">Your Rating</label>
+                        <div class="stars">
+                            {% for i in "54321"|make_list %}
+                            <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" required>
+                            <label for="star{{ i }}" title="{{ i }} stars">
+                                <i class="far fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="review_text" class="form-label">Your Review</label>
+                        <textarea class="form-control" id="review_text" name="review_text" rows="4" required 
+                                  placeholder="Share your experience at our facility"></textarea>
+                        <div class="form-text">Your review will be visible after approval.</div>
+                    </div>
+                    <input type="hidden" name="facility" value="{{ turf.id }}">
+                    {% if user.bookings.exists %}
+                    <div class="mb-3">
+                        <label for="booking" class="form-label">Related Booking (Optional)</label>
+                        <select class="form-select" name="booking" id="booking">
+                            <option value="">Select a booking</option>
+                            {% for booking in user.bookings.all|slice:":5" %}
+                            <option value="{{ booking.id }}">
+                                {{ booking.date|date }} - {{ booking.time_slot.get_slot_time_display }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitReview">Submit Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.stars {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.stars input[type="radio"] {
+    display: none;
+}
+
+.stars label {
+    cursor: pointer;
+    padding: 5px;
+    font-size: 25px;
+}
+
+.stars label .far {
+    display: inline-block;
+}
+
+.stars label .fas {
+    display: none;
+}
+
+.stars input[type="radio"]:checked ~ label .far {
+    display: none;
+}
+
+.stars input[type="radio"]:checked ~ label .fas {
+    display: inline-block;
+    color: #ffc107;
+}
+
+.stars label:hover .far {
+    display: none;
+}
+
+.stars label:hover .fas,
+.stars label:hover ~ label .fas {
+    display: inline-block;
+    color: #ffc107;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const reviewForm = document.getElementById('reviewForm');
+    const submitButton = document.getElementById('submitReview');
+    
+    reviewForm?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        submitButton.disabled = true;
+        submitButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...`;
+        
+        const formData = new FormData(this);
+        
+        try {
+            const response = await fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Show success message and close modal
+                alert('Thank you for your review! It will be visible after approval.');
+                bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
+                
+                // Optionally reload the page to show the new review
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                throw new Error(result.message || 'Failed to submit review');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to submit review. Please try again.');
+        } finally {
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Submit Review';
+        }
+    });
+});</script>

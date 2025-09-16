@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - TurfZone{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h2>Welcome, {{ user.username }}!</h2>
+    
+    <div class="dashboard-section">
+        <h3>Recent Bookings</h3>
+        {% if recent_bookings %}
+            <div class="bookings-list">
+                {% for booking in recent_bookings %}
+                    <div class="booking-card">
+                        <h4>{{ booking.facility_sport.facility.name }} - {{ booking.facility_sport.sport.name }}</h4>
+                        <p>Date: {{ booking.date }}</p>
+                        <p>Time: {{ booking.time_slot.get_slot_time_display }}</p>
+                        <p>Status: {{ booking.get_status_display }}</p>
+                        <p>Total Price: ₹{{ booking.total_price }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No recent bookings found.</p>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-section">
+        <h3>Upcoming Bookings</h3>
+        {% if upcoming_bookings %}
+            <div class="bookings-list">
+                {% for booking in upcoming_bookings %}
+                    <div class="booking-card upcoming">
+                        <h4>{{ booking.facility_sport.facility.name }} - {{ booking.facility_sport.sport.name }}</h4>
+                        <p>Date: {{ booking.date }}</p>
+                        <p>Time: {{ booking.time_slot.get_slot_time_display }}</p>
+                        <p>Status: {{ booking.get_status_display }}</p>
+                        <p>Total Price: ₹{{ booking.total_price }}</p>
+                        {% if booking.status == 'confirmed' %}
+                            <a href="{% url 'booking-detail' booking.id %}" class="btn btn-primary btn-sm">View Details</a>
+                            <button class="btn btn-danger btn-sm cancel-booking" data-booking-id="{{ booking.id }}">Cancel Booking</button>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No upcoming bookings found.</p>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-actions">
+        <a href="{% url 'profile' %}" class="btn btn-primary">Edit Profile</a>
+        <a href="{% url 'home' %}" class="btn btn-success">Book Facility</a>
+    </div>
+</div>
+{% endblock %}

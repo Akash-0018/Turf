@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Successful - TurfZone{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow text-center">
+                <div class="card-body">
+                    <div class="success-icon mb-4">
+                        <i class="fas fa-check-circle text-success display-1"></i>
+                    </div>
+                    <h4 class="mb-4">Payment Successful!</h4>
+                    <p class="text-muted">Thank you for your booking. Your payment has been processed successfully.</p>
+                    
+                    <div class="booking-details mt-4 text-start">
+                        <h6 class="fw-bold mb-3">Booking Details</h6>
+                        <div class="info-item">
+                            <span class="label">Booking ID:</span>
+                            <span class="value">#{{ booking.id }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Transaction ID:</span>
+                            <span class="value">{{ payment.transaction_id }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Amount Paid:</span>
+                            <span class="value">₹{{ payment.amount }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Date:</span>
+                            <span class="value">{{ booking.date }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Time:</span>
+                            <span class="value">{{ booking.time_slot.get_slot_time_display }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'user-bookings' %}" class="btn btn-primary">
+                            <i class="fas fa-calendar me-2"></i>View My Bookings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.success-icon {
+    animation: scale-in 0.5s ease-out;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.label {
+    color: #6c757d;
+}
+
+.value {
+    font-weight: 500;
+}
+
+@keyframes scale-in {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+</style>
+{% endblock %}

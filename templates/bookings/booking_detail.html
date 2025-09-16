@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Booking Details - TurfZone{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">Booking Details</h3>
+                    <a href="{% url 'bookings' %}" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-arrow-left"></i> Back to Bookings
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Facility Information</h5>
+                            <p><strong>Name:</strong> {{ booking.facility.name }}</p>
+                            <p><strong>Location:</strong> {{ booking.facility.location }}</p>
+                            <p><strong>Sport Type:</strong> {{ booking.facility.sport_type }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Booking Information</h5>
+                            <p><strong>Date:</strong> {{ booking.date }}</p>
+                            <p><strong>Time:</strong> {{ booking.start_time }} - {{ booking.end_time }}</p>
+                            <p><strong>Duration:</strong> 
+                                {% with hours=booking.duration %}
+                                    {{ hours }} hour{{ hours|pluralize }}
+                                {% endwith %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h5>Payment Information</h5>
+                            <p><strong>Status:</strong> 
+                                <span class="badge {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ booking.status|title }}
+                                </span>
+                            </p>
+                            <p><strong>Total Amount:</strong> ${{ booking.total_price }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Actions</h5>
+                            {% if booking.status == 'pending' %}
+                                <a href="#" class="btn btn-success me-2">
+                                    <i class="fas fa-credit-card"></i> Pay Now
+                                </a>
+                            {% endif %}
+                            
+                            {% if booking.status == 'confirmed' %}
+                                <button class="btn btn-danger cancel-booking" data-booking-id="{{ booking.id }}">
+                                    <i class="fas fa-times"></i> Cancel Booking
+                                </button>
+                            {% endif %}
+
+                            {% if booking.status == 'completed' and not booking.review %}
+                                <a href="{% url 'submit-review' booking.id %}" class="btn btn-primary">
+                                    <i class="fas fa-star"></i> Write Review
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if booking.status == 'confirmed' %}
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <h5><i class="fas fa-info-circle"></i> Important Information</h5>
+                                <ul class="mb-0">
+                                    <li>Please arrive 15 minutes before your booking time</li>
+                                    <li>Bring appropriate sports gear and equipment</li>
+                                    <li>Follow facility rules and regulations</li>
+                                    <li>Contact support if you need any assistance</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cancelButton = document.querySelector('.cancel-booking');
+    if (cancelButton) {
+        cancelButton.addEventListener('click', function() {
+            if (confirm('Are you sure you want to cancel this booking?')) {
+                const bookingId = this.dataset.bookingId;
+                fetch(`/bookings/${bookingId}/cancel/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'booking cancelled') {
+                        window.location.href = '{% url "bookings" %}';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to cancel booking. Please try again.');
+                });
+            }
+        });
+    }
+
+    // Function to get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+{% endblock %}

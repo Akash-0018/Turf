@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - TurfZone{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container" data-aos="fade-up">
+    <h2><i class="fas fa-sign-in-alt me-2"></i>Login</h2>
+    {% if form.errors %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle me-2"></i>Invalid username or password.
+    </div>
+    {% endif %}
+    <form method="post" class="auth-form">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="{{ form.username.id_for_label }}">
+                <i class="fas fa-user me-2"></i>Username
+            </label>
+            {{ form.username }}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.password.id_for_label }}">
+                <i class="fas fa-lock me-2"></i>Password
+            </label>
+            {{ form.password }}
+        </div>
+        <button type="submit">
+            <i class="fas fa-sign-in-alt me-2"></i>Login
+        </button>
+    </form>
+    <div class="auth-links">
+        <a href="{% url 'password_reset' %}">
+            <i class="fas fa-key me-1"></i>Forgot Password?
+        </a>
+        <p class="mt-3">
+            Don't have an account? 
+            <a href="{% url 'register' %}">
+                <i class="fas fa-user-plus me-1"></i>Register here
+            </a>
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,997 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Settings - TurfZone{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="settings-container">
+        <!-- Settings Navigation -->
+        <div class="settings-nav">
+            <div class="nav flex-column nav-pills" id="settings-tab" role="tablist">
+                <button class="nav-link active" id="general-tab" data-bs-toggle="pill" data-bs-target="#general" type="button">
+                    <i class="fas fa-cog me-2"></i>General Settings
+                </button>
+                <button class="nav-link" id="facility-tab" data-bs-toggle="pill" data-bs-target="#facility" type="button">
+                    <i class="fas fa-building me-2"></i>Facility Management
+                </button>
+                <button class="nav-link" id="sports-tab" data-bs-toggle="pill" data-bs-target="#sports" type="button">
+                    <i class="fas fa-football-ball me-2"></i>Sports & Activities
+                </button>
+                <button class="nav-link" id="offers-tab" data-bs-toggle="pill" data-bs-target="#offers" type="button">
+                    <i class="fas fa-tags me-2"></i>Offers & Discounts
+                </button>
+                <button class="nav-link" id="reviews-tab" data-bs-toggle="pill" data-bs-target="#reviews" type="button">
+                    <i class="fas fa-star me-2"></i>Reviews & Ratings
+                </button>
+            </div>
+        </div>
+
+        <!-- Settings Content -->
+        <div class="settings-content">
+            <div class="tab-content" id="settings-tabContent">
+                <!-- General Settings -->
+                <div class="tab-pane fade show active" id="general" role="tabpanel">
+                    <div class="settings-header">
+                        <h3>General Settings</h3>
+                        <button type="button" class="btn btn-primary save-settings">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                    </div>
+
+                    <form id="generalSettingsForm" class="settings-form">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Site Name</label>
+                                    <input type="text" class="form-control" name="site_name" value="{{ settings.site_name }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Contact Email</label>
+                                    <input type="email" class="form-control" name="contact_email" value="{{ settings.contact_email }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Logo</label>
+                                    <div class="custom-file-upload">
+                                        <input type="file" name="logo" accept="image/*">
+                                        {% if settings.logo %}
+                                        <img src="{{ settings.logo.url }}" alt="Current Logo" class="current-image">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Favicon</label>
+                                    <div class="custom-file-upload">
+                                        <input type="file" name="favicon" accept="image/*">
+                                        {% if settings.favicon %}
+                                        <img src="{{ settings.favicon.url }}" alt="Current Favicon" class="current-image">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label>About Us</label>
+                                    <textarea class="form-control" name="about_us" rows="4">{{ settings.about_us }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Booking Time Limit (minutes)</label>
+                                    <input type="number" class="form-control" name="booking_time_limit" value="{{ settings.booking_time_limit }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Cancellation Time Limit (hours)</label>
+                                    <input type="number" class="form-control" name="cancellation_time_limit" value="{{ settings.cancellation_time_limit }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Max Advance Booking Days</label>
+                                    <input type="number" class="form-control" name="max_advance_booking_days" value="{{ settings.max_advance_booking_days }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="maintenance_mode" {% if settings.maintenance_mode %}checked{% endif %}>
+                                    <label class="form-check-label">Maintenance Mode</label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Facility Management -->
+                <div class="tab-pane fade" id="facility" role="tabpanel">
+                    <div class="settings-header">
+                        <h3>Facility Management</h3>
+                        <button type="button" class="btn btn-primary" onclick="resetForm('facilityForm')" data-bs-toggle="modal" data-bs-target="#addFacilityModal">
+                            <i class="fas fa-plus me-2"></i>Add Facility
+                        </button>
+                    </div>
+
+                    <div class="facilities-grid">
+                        {% for facility in facilities %}
+                        <div class="facility-card">
+                            <div class="facility-image">
+                                {% if facility.images.exists %}
+                                <img src="{{ facility.images.first.image.url }}" alt="{{ facility.name }}">
+                                {% else %}
+                                <div class="no-image">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="facility-info">
+                                <h4>{{ facility.name }}</h4>
+                                <p>{{ facility.sports.count }} Sports Available</p>
+                                <div class="facility-actions">
+                                    <button class="btn btn-sm btn-primary edit-facility" data-id="{{ facility.id }}" data-edit="facility">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" data-id="{{ facility.id }}" data-delete="facility">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="empty-state">
+                            <i class="fas fa-building"></i>
+                            <p>No facilities added yet</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Sports & Activities -->
+                <div class="tab-pane fade" id="sports" role="tabpanel">
+                    <div class="settings-header">
+                        <h3>Sports & Activities</h3>
+                        <button type="button" class="btn btn-primary" onclick="resetForm('sportForm')" data-bs-toggle="modal" data-bs-target="#addSportModal">
+                            <i class="fas fa-plus me-2"></i>Add Sport
+                        </button>
+                    </div>
+
+                    <div class="sports-grid">
+                        {% for sport in sports %}
+                        <div class="sport-card">
+                            <div class="sport-icon">
+                                {% if sport.icon %}
+                                <img src="{{ sport.icon.url }}" alt="{{ sport.name }}">
+                                {% else %}
+                                <i class="fas fa-running"></i>
+                                {% endif %}
+                            </div>
+                            <div class="sport-info">
+                                <h4>{{ sport.name }}</h4>
+                                <p>{{ sport.facilitysport_set.count }} Facilities</p>
+                                <div class="sport-actions">
+                                    <button class="btn btn-sm btn-primary edit-sport" data-id="{{ sport.id }}" data-edit="sport">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" data-id="{{ sport.id }}" data-delete="sport">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="empty-state">
+                            <i class="fas fa-running"></i>
+                            <p>No sports added yet</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Offers & Discounts -->
+                <div class="tab-pane fade" id="offers" role="tabpanel">
+                    <div class="settings-header">
+                        <h3>Offers & Discounts</h3>
+                        <button type="button" class="btn btn-primary" onclick="resetForm('offerForm')" data-bs-toggle="modal" data-bs-target="#addOfferModal">
+                            <i class="fas fa-plus me-2"></i>Add Offer
+                        </button>
+                    </div>
+
+                    <div class="offers-list">
+                        {% for offer in offers %}
+                        <div class="offer-card">
+                            <div class="offer-details">
+                                <h4>{{ offer.title }}</h4>
+                                <p>{{ offer.discount_percentage }}% OFF</p>
+                                <p class="text-muted">Valid till: {{ offer.end_date }}</p>
+                            </div>
+                            <div class="offer-status">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input toggle-offer" type="checkbox" 
+                                           data-id="{{ offer.id }}" {% if offer.is_active %}checked{% endif %}>
+                                </div>
+                            </div>
+                                        <div class="offer-actions">
+                                            <button class="btn btn-sm btn-primary edit-offer" data-id="{{ offer.id }}" data-edit="offer">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" data-id="{{ offer.id }}" data-delete="offer">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="empty-state">
+                            <i class="fas fa-tags"></i>
+                            <p>No offers available</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Reviews & Ratings -->
+                <div class="tab-pane fade" id="reviews" role="tabpanel">
+                    <div class="settings-header">
+                        <h3>Reviews & Ratings</h3>
+                    </div>
+
+                    <div class="reviews-list">
+                        {% for review in reviews %}
+                        <div class="review-card">
+                            <div class="review-header">
+                                <div class="user-info">
+                                    <div class="user-avatar">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div>
+                                        <h5>{{ review.user.get_full_name }}</h5>
+                                        <div class="rating">
+                                            {% for i in "12345"|make_list %}
+                                            <i class="fas fa-star {% if forloop.counter <= review.rating %}text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="review-actions">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input toggle-featured" type="checkbox" 
+                                               data-id="{{ review.id }}" {% if review.is_featured %}checked{% endif %}>
+                                        <label class="form-check-label">Featured</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="review-content">
+                                <p>{{ review.review_text }}</p>
+                                <div class="review-meta">
+                                    <span>{{ review.facility.name }}</span>
+                                    <span>{{ review.created_at|timesince }} ago</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="empty-state">
+                            <i class="fas fa-star"></i>
+                            <p>No reviews yet</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Facility Modal -->
+<div class="modal fade" id="addFacilityModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Facility</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="facilityForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Facility Name*</label>
+                                <input type="text" class="form-control" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Location*</label>
+                                <input type="text" class="form-control" name="location" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Latitude</label>
+                                <input type="number" class="form-control" name="latitude" step="0.000001">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Longitude</label>
+                                <input type="number" class="form-control" name="longitude" step="0.000001">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label>Description*</label>
+                                <textarea class="form-control" name="description" rows="3" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Opening Time*</label>
+                                <input type="time" class="form-control" name="opening_time" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Closing Time*</label>
+                                <input type="time" class="form-control" name="closing_time" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label>Rules</label>
+                                <textarea class="form-control" name="rules" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label>Amenities</label>
+                                <select class="form-control select2" name="amenities[]" multiple>
+                                    <option value="Floodlights">Floodlights</option>
+                                    <option value="Parking">Parking</option>
+                                    <option value="Changing Rooms">Changing Rooms</option>
+                                    <option value="Washrooms">Washrooms</option>
+                                    <option value="Water">Drinking Water</option>
+                                    <option value="First Aid">First Aid</option>
+                                    <option value="Equipment Rental">Equipment Rental</option>
+                                    <option value="Refreshments">Refreshments</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label>Facility Images</label>
+                                <input type="file" class="form-control" name="images[]" accept="image/*" multiple>
+                                <small class="text-muted">First image will be set as primary</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="is_active" checked>
+                                <label class="form-check-label">Active</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Facility</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Sport Modal -->
+<div class="modal fade" id="addSportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Sport</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="sportForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>Sport Name*</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label>Sport Icon</label>
+                        <input type="file" class="form-control" name="icon" accept="image/*">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Sport</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Offer Modal -->
+<div class="modal fade" id="addOfferModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Offer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="offerForm">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>Facility*</label>
+                        <select class="form-control" name="facility" required>
+                            {% for facility in facilities %}
+                            <option value="{{ facility.id }}">{{ facility.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label>Offer Title*</label>
+                        <input type="text" class="form-control" name="title" required>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label>Description*</label>
+                        <textarea class="form-control" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label>Discount Percentage*</label>
+                        <input type="number" class="form-control" name="discount_percentage" min="0" max="100" required>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Start Date*</label>
+                                <input type="date" class="form-control" name="start_date" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>End Date*</label>
+                                <input type="date" class="form-control" name="end_date" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-check mt-3">
+                        <input type="checkbox" class="form-check-input" name="is_active" checked>
+                        <label class="form-check-label">Active</label>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Offer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.settings-container {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 2rem;
+    min-height: calc(100vh - 100px);
+}
+
+.settings-nav {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.settings-content {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.nav-pills .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    color: var(--text-secondary);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.nav-pills .nav-link:hover {
+    background: var(--background-light);
+}
+
+.nav-pills .nav-link.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.settings-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.custom-file-upload {
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+}
+
+.current-image {
+    max-width: 100px;
+    margin-top: 1rem;
+}
+
+.facilities-grid,
+.sports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.facility-card,
+.sport-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.facility-image,
+.sport-icon {
+    height: 150px;
+    background: var(--background-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.facility-image img,
+.facility-info,
+.sport-info {
+    padding: 1rem;
+}
+
+.facility-actions,
+.sport-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.sport-icon {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+}
+
+.sport-icon img {
+    max-width: 60px;
+    height: auto;
+}
+
+.sport-icon i {
+    font-size: 2rem;
+    color: #6c757d;
+}
+
+.offer-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.offers-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.offer-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.reviews-list {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.review-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--primary-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+}
+
+.rating {
+    color: #ffc107;
+}
+
+.review-meta {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .settings-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .settings-nav {
+        margin-bottom: 1rem;
+    }
+    
+    .nav-pills {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 1rem;
+    }
+    
+    .nav-pills .nav-link {
+        white-space: nowrap;
+    }
+}
+</style>
+
+<script>
+// Reset form state and prepare for new item
+function resetForm(formId) {
+    const form = document.getElementById(formId);
+    if (form) {
+        form.reset();
+        
+        // Clear all data attributes
+        form.dataset.mode = 'add';
+        delete form.dataset.facilityId;
+        delete form.dataset.sportId;
+        delete form.dataset.offerId;
+        
+        // Reset Select2 if exists
+        const select2 = form.querySelector('.select2');
+        if (select2) {
+            $(select2).val(null).trigger('change');
+        }
+        
+        // Reset modal title
+        const modalTitle = form.closest('.modal').querySelector('.modal-title');
+        if (modalTitle) {
+            modalTitle.textContent = `Add New ${formId.replace('Form', '')}`;
+        }
+    }
+}
+
+// Set form to edit mode
+function setEditMode(formId, itemId, itemType) {
+    const form = document.getElementById(formId);
+    if (form) {
+        form.dataset.mode = 'edit';
+        form.dataset[`${itemType}Id`] = itemId;
+        
+        // Update modal title
+        const modalTitle = form.closest('.modal').querySelector('.modal-title');
+        if (modalTitle) {
+            modalTitle.textContent = `Edit ${formId.replace('Form', '')}`;
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Save general settings
+    const generalSettingsForm = document.getElementById('generalSettingsForm');
+    const saveSettingsBtn = document.querySelector('.save-settings');
+    
+    saveSettingsBtn.addEventListener('click', function() {
+        const formData = new FormData(generalSettingsForm);
+        
+        fetch('{% url "save-settings" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message || 'Settings saved successfully', 'success');
+            } else {
+                showToast(data.message || 'Error saving settings', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error saving settings', 'error');
+        });
+    });
+    
+    // Toggle featured reviews
+    document.querySelectorAll('.toggle-featured').forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const reviewId = this.dataset.id;
+            const isFeatured = this.checked;
+            
+            fetch(`/reviews/${reviewId}/toggle-featured/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    is_featured: isFeatured
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message || 'Review updated successfully', 'success');
+                    // Notify user that changes will be visible on the home page
+                    showToast('Changes will be visible on the home page after refresh', 'success');
+                } else {
+                    showToast(data.message || 'Error updating review', 'error');
+                    this.checked = !isFeatured;  // Revert toggle
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error updating review', 'error');
+                this.checked = !isFeatured;  // Revert toggle
+            });
+        });
+    });
+    
+    // Toggle offers
+    document.querySelectorAll('.toggle-offer').forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const offerId = this.dataset.id;
+            const isActive = this.checked;
+            
+            fetch(`/admin/offer/${offerId}/toggle/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    is_active: isActive
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message || 'Offer updated successfully', 'success');
+                } else {
+                    showToast(data.message || 'Error updating offer', 'error');
+                    this.checked = !isActive;  // Revert toggle
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error updating offer', 'error');
+                this.checked = !isActive;  // Revert toggle
+            });
+        });
+    });
+});
+
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast position-fixed bottom-0 end-0 m-4 text-white bg-${type === 'success' ? 'success' : 'danger'}`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="toast-body">
+            ${message}
+        </div>
+    `;
+    document.body.appendChild(toast);
+    new bootstrap.Toast(toast).show();
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// Handle facility form submission
+document.getElementById('facilityForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const mode = this.dataset.mode;
+    const facilityId = this.dataset.facilityId;
+    
+    const url = mode === 'edit' ? `/facilities/admin/facility/${facilityId}/edit/` : '{% url "add-facility" %}';
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message || 'Facility added successfully', 'success');
+            location.reload();
+        } else {
+            showToast(data.message || 'Error adding facility', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Error adding facility', 'error');
+    });
+});
+
+// Handle sport form submission
+document.getElementById('sportForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const mode = this.dataset.mode;
+    const sportId = this.dataset.sportId;
+    
+    const url = mode === 'edit' ? `/facilities/admin/sport/${sportId}/edit/` : '{% url "add-sport" %}';
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast('Sport added successfully');
+            location.reload();
+        } else {
+            showToast(data.message || 'Error adding sport', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Error adding sport', 'error');
+    });
+});
+
+// Handle offer form submission
+document.getElementById('offerForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const mode = this.dataset.mode;
+    const offerId = this.dataset.offerId;
+    
+    const url = mode === 'edit' ? `/facilities/admin/offer/${offerId}/edit/` : '{% url "add-offer" %}';
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast('Offer added successfully');
+            location.reload();
+        } else {
+            showToast(data.message || 'Error adding offer', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Error adding offer', 'error');
+    });
+});
+
+// Initialize Select2 for multi-select inputs
+document.addEventListener('DOMContentLoaded', function() {
+    $('.select2').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select items',
+        allowClear: true
+    });
+});
+</script>
+
+<!-- Include Select2 CSS and JS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="{% static 'js/admin-settings.js' %}"></script>
+{% endblock %}

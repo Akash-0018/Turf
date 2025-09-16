@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}FAQ - TurfZone{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="text-center mb-4">Frequently Asked Questions</h1>
+    
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="accordion" id="faqAccordion">
+                <!-- Booking Questions -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#booking1">
+                            How do I make a booking?
+                        </button>
+                    </h2>
+                    <div id="booking1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Making a booking is easy! Simply select your preferred date and time slot from our booking page, choose your sport type, and complete the payment process. You'll receive a confirmation email with your booking details.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#booking2">
+                            What is your cancellation policy?
+                        </button>
+                    </h2>
+                    <div id="booking2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Cancellations made at least 24 hours before the booking time are eligible for a full refund. Late cancellations or no-shows may be charged the full booking amount.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Questions -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#payment1">
+                            What payment methods do you accept?
+                        </button>
+                    </h2>
+                    <div id="payment1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            We accept all major credit/debit cards, UPI payments, and net banking. All transactions are secure and processed through our payment gateway.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Facility Questions -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#facility1">
+                            What facilities are available?
+                        </button>
+                    </h2>
+                    <div id="facility1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Our facilities include football turfs, cricket nets, basketball courts, and badminton courts. Each facility is maintained to professional standards and includes basic amenities.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Equipment Questions -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#equipment1">
+                            Do you provide equipment?
+                        </button>
+                    </h2>
+                    <div id="equipment1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Basic equipment is available for rent at nominal charges. However, we recommend bringing your own equipment for the best experience.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timing Questions -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#timing1">
+                            What are your operating hours?
+                        </button>
+                    </h2>
+                    <div id="timing1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Our facilities are open from 6:00 AM to 10:00 PM, seven days a week. However, some facilities might have different timings based on maintenance schedules.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

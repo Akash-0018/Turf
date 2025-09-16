@@ -1,0 +1,677 @@
+{% if user.is_authenticated %}
+<!-- Book a Slot Modal -->
+<div class="modal fade" id="bookingModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title-wrapper">
+                    <h5 class="modal-title">
+                        <i class="fas fa-calendar-plus gradient-icon me-2"></i>Book Your Perfect Slot
+                    </h5>
+                    <p class="modal-subtitle mb-0">Ready for some action? Let's secure your spot! 🎯</p>
+                </div>
+                <button type="button" class="btn-close custom-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="bookingForm" action="{% url 'booking-create' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="time_slot" id="slotIdInput">
+                    <input type="hidden" name="date" id="bookingDate">
+                    
+                    <div class="booking-grid">
+                        <!-- Left Column -->
+                        <div class="booking-info-column">
+                            <!-- Selected Time Display -->
+                            <div class="time-selector-card">
+                                <div class="card-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="time-details">
+                                    <label class="form-label">Your Selected Time</label>
+                                    <h3 class="selected-time" id="selectedTime"></h3>
+                                </div>
+                            </div>
+
+                            <!-- Facility & Sport Selection -->
+                            <div class="facility-selector">
+                                <label class="form-label">
+                                    <i class="fas fa-running gradient-icon me-2"></i>Choose Your Game
+                                </label>
+                                <select name="facility_sport" class="form-select custom-select" required>
+                                    <option value="">Select facility & sport...</option>
+                                    {% for fs in facility_sports %}
+                                    <option value="{{ fs.id }}" data-price="{{ fs.price_per_slot }}">
+                                        {{ fs.facility.name }} - {{ fs.sport.name }} (₹{{ fs.price_per_slot }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="booking-summary-column">
+                            <!-- Booking Summary -->
+                            <div class="booking-summary mt-4 d-none">
+                                <div class="summary-header">
+                                    <i class="fas fa-receipt gradient-icon me-2"></i>
+                                    <h6 class="summary-title mb-0">Booking Summary</h6>
+                                </div>
+                                
+                                <div class="summary-content">
+                                    <div class="summary-item">
+                                        <div class="item-icon">
+                                            <i class="fas fa-calendar-day"></i>
+                                        </div>
+                                        <div class="item-details">
+                                            <span class="label">Date</span>
+                                            <span class="value" id="summaryDate"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="summary-item">
+                                        <div class="item-icon">
+                                            <i class="fas fa-clock"></i>
+                                        </div>
+                                        <div class="item-details">
+                                            <span class="label">Time</span>
+                                            <span class="value" id="summaryTime"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="summary-item">
+                                        <div class="item-icon">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </div>
+                                        <div class="item-details">
+                                            <span class="label">Facility & Sport</span>
+                                            <span class="value" id="summaryFacility"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="price-summary">
+                                        <div class="price-row">
+                                            <span>Base Price</span>
+                                            <span class="amount">₹<span id="summaryPrice"></span></span>
+                                        </div>
+                                        <div class="price-row total">
+                                            <span>Final Price</span>
+                                            <span class="amount">₹<span id="summaryFinalPrice"></span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button type="submit" form="bookingForm" class="btn btn-primary">
+                    <i class="fas fa-check me-2"></i>Confirm Booking
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Variables */
+:root {
+    --primary-color: #2196f3;
+    --primary-light: #e3f2fd;
+    --primary-dark: #1976d2;
+    --secondary-color: #ff4081;
+    --success-color: #4caf50;
+    --text-primary: #2c3e50;
+    --text-secondary: #6c757d;
+    --background-light: #f8f9fa;
+    --border-color: #e0e0e0;
+    --gradient-start: #2196f3;
+    --gradient-end: #00bcd4;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --animation-timing: 0.3s ease;
+}
+
+/* Modal Base Styles */
+.modal-content {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px var(--shadow-color);
+    overflow: hidden;
+    background: #fff;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    padding: 1.5rem 2rem;
+    border: none;
+    color: white;
+}
+
+.modal-title-wrapper {
+    flex: 1;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.modal-subtitle {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+/* Grid Layout */
+.booking-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+@media (max-width: 768px) {
+    .booking-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+/* Time Selector Card */
+.time-selector-card {
+    background: linear-gradient(135deg, var(--primary-light), white);
+    border-radius: 15px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: transform var(--animation-timing);
+}
+
+.time-selector-card:hover {
+    transform: translateY(-2px);
+}
+
+.card-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+}
+
+.time-details {
+    flex: 1;
+}
+
+.selected-time {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* Facility Selector */
+.custom-select {
+    background-color: white;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    font-size: 1rem;
+    transition: all var(--animation-timing);
+    cursor: pointer;
+}
+
+.custom-select:hover {
+    border-color: var(--primary-color);
+}
+
+.custom-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* Booking Summary */
+.booking-summary {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: all var(--animation-timing);
+}
+
+.summary-header {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    color: white;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.summary-content {
+    padding: 1.5rem;
+}
+
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.item-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--primary-light);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+}
+
+.item-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.value {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.price-summary {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px dashed var(--border-color);
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    font-size: 1rem;
+}
+
+.price-row.total {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 2px solid var(--border-color);
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+/* Buttons */
+.btn {
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all var(--animation-timing);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    border: none;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+}
+
+.btn-outline-secondary {
+    border: 2px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--background-light);
+    border-color: var(--text-secondary);
+}
+
+/* Animations */
+.gradient-icon {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.booking-summary:not(.d-none) {
+    animation: slideIn 0.4s ease-out;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 576px) {
+    .modal-body {
+        padding: 1.5rem;
+    }
+    
+    .booking-grid {
+        gap: 1rem;
+    }
+    
+    .time-selector-card {
+        padding: 1rem;
+    }
+    
+    .selected-time {
+        font-size: 1.25rem;
+    }
+    
+    .btn {
+        padding: 0.6rem 1.5rem;
+    }
+}
+</style>
+
+<script>
+function openBookingModal(button) {
+    const slotId = button.dataset.slotId;
+    const slotTime = button.dataset.slotTime;
+    const modal = new bootstrap.Modal(document.getElementById('bookingModal'));
+    
+    // Set values with animation
+    document.getElementById('slotIdInput').value = slotId;
+    const timeElement = document.getElementById('selectedTime');
+    timeElement.style.opacity = '0';
+    timeElement.textContent = slotTime;
+    
+    // Reset facility selection and hide summary
+    const facilitySelect = document.querySelector('select[name="facility_sport"]');
+    facilitySelect.selectedIndex = 0;
+    document.querySelector('.booking-summary').classList.add('d-none');
+    
+    // Show modal
+    modal.show();
+    
+    // Animate time display
+    setTimeout(() => {
+        timeElement.style.transition = 'opacity 0.3s ease';
+        timeElement.style.opacity = '1';
+    }, 100);
+}
+
+// Handle facility selection with enhanced animations
+document.querySelector('select[name="facility_sport"]').addEventListener('change', function() {
+    const selected = this.selectedOptions[0];
+    const summaryDiv = document.querySelector('.booking-summary');
+    
+    if (selected.value) {
+        const price = selected.dataset.price;
+        
+        // Update summary details
+        document.getElementById('summaryFacility').textContent = selected.text.split(' (₹')[0];
+        document.getElementById('summaryPrice').textContent = price;
+        document.getElementById('summaryFinalPrice').textContent = price;
+        
+        // Format date with nice animation
+        const today = new Date();
+        const dateElement = document.getElementById('summaryDate');
+        dateElement.style.opacity = '0';
+        dateElement.textContent = today.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        document.getElementById('summaryTime').textContent = document.getElementById('selectedTime').textContent;
+        
+        // Show summary with animation
+        summaryDiv.classList.remove('d-none');
+        setTimeout(() => {
+            dateElement.style.transition = 'opacity 0.3s ease';
+            dateElement.style.opacity = '1';
+        }, 100);
+    } else {
+        summaryDiv.classList.add('d-none');
+    }
+});
+
+// Enhanced form submission with loading state
+document.getElementById('bookingForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const facilitySelect = document.querySelector('select[name="facility_sport"]');
+    const submitBtn = this.querySelector('button[type="submit"]');
+    
+    if (!facilitySelect.value) {
+        // Animated validation feedback
+        facilitySelect.classList.add('is-invalid');
+        facilitySelect.style.animation = 'shake 0.5s ease';
+        setTimeout(() => {
+            facilitySelect.style.animation = '';
+        }, 500);
+        return;
+    }
+    
+    // Add loading state
+    submitBtn.disabled = true;
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+    
+    const formData = new FormData(this);
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Booking failed');
+        return response.json();
+    })
+    .then(data => {
+        // Success feedback
+        submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Success!';
+        submitBtn.classList.add('btn-success');
+        
+        setTimeout(() => {
+            bootstrap.Modal.getInstance(document.getElementById('bookingModal')).hide();
+            window.location.reload();
+        }, 1000);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Error feedback
+        submitBtn.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Error';
+        submitBtn.classList.add('btn-danger');
+        
+        setTimeout(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+            submitBtn.classList.remove('btn-danger');
+        }, 2000);
+    });
+});
+
+// Add some delightful interactions
+document.addEventListener('DOMContentLoaded', function() {
+    // Subtle hover effects on interactive elements
+    const interactiveElements = document.querySelectorAll('.time-selector-card, .custom-select, .btn');
+    interactiveElements.forEach(element => {
+        element.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.transition = 'transform 0.3s ease';
+        });
+        
+        element.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endif %}
+</style>
+
+<script>
+function openBookingModal(button) {
+    const slotId = button.dataset.slotId;
+    const slotTime = button.dataset.slotTime;
+    const modal = new bootstrap.Modal(document.getElementById('bookingModal'));
+    
+    // Set values
+    document.getElementById('slotIdInput').value = slotId;
+    document.getElementById('selectedTime').textContent = slotTime;
+    
+    // Reset facility selection and hide summary
+    const facilitySelect = document.querySelector('select[name="facility_sport"]');
+    facilitySelect.selectedIndex = 0;
+    document.querySelector('.booking-summary').classList.add('d-none');
+    
+    // Show modal
+    modal.show();
+}
+
+// Handle facility selection
+document.querySelector('select[name="facility_sport"]').addEventListener('change', function() {
+    const selected = this.selectedOptions[0];
+    const summaryDiv = document.querySelector('.booking-summary');
+    
+    if (selected.value) {
+        const price = selected.dataset.price;
+        document.getElementById('summaryFacility').textContent = selected.text.split(' (₹')[0];
+        document.getElementById('summaryPrice').textContent = price;
+        document.getElementById('summaryFinalPrice').textContent = price;
+        
+        // Format date
+        const today = new Date();
+        document.getElementById('summaryDate').textContent = today.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        document.getElementById('summaryTime').textContent = document.getElementById('selectedTime').textContent;
+        summaryDiv.classList.remove('d-none');
+    } else {
+        summaryDiv.classList.add('d-none');
+    }
+});
+
+// Handle form submission
+document.getElementById('bookingForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const facilitySelect = document.querySelector('select[name="facility_sport"]');
+    
+    if (!facilitySelect.value) {
+        alert('Please select a facility and sport');
+        return;
+    }
+    
+    const formData = new FormData(this);
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Booking failed');
+        return response.json();
+    })
+    .then(data => {
+        bootstrap.Modal.getInstance(document.getElementById('bookingModal')).hide();
+        alert('Booking created successfully!');
+        window.location.reload();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error creating booking. Please try again.');
+    });
+});
+document.addEventListener('DOMContentLoaded', function() {
+    const bookingModal = document.getElementById('bookingModal');
+    const slotButtons = document.querySelectorAll('.book-btn');
+    const facilitySelect = document.querySelector('select[name="facility_sport"]');
+    const bookingSummary = document.querySelector('.booking-summary');
+    
+    // Handle slot selection
+    slotButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const slotId = this.dataset.slotId;
+            const slotTime = this.dataset.slotTime;
+            
+            document.getElementById('slotIdInput').value = slotId;
+            document.getElementById('selectedTime').textContent = slotTime;
+            document.getElementById('summaryTime').textContent = slotTime;
+            
+            // Format date nicely
+            const date = new Date('{{ selected_date }}');
+            const formattedDate = date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('summaryDate').textContent = formattedDate;
+        });
+    });
+    
+    // Handle facility selection
+    if (facilitySelect) {
+        facilitySelect.addEventListener('change', function() {
+            const selected = this.selectedOptions[0];
+            if (selected.value) {
+                const price = selected.dataset.price;
+                document.getElementById('summaryFacility').textContent = selected.text.split(' (₹')[0];
+                document.getElementById('summaryPrice').textContent = price;
+                document.getElementById('summaryFinalPrice').textContent = price;
+                bookingSummary.classList.remove('d-none');
+                
+                // Animate the summary appearance
+                bookingSummary.style.opacity = '0';
+                bookingSummary.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    bookingSummary.style.transition = 'all 0.3s ease-out';
+                    bookingSummary.style.opacity = '1';
+                    bookingSummary.style.transform = 'translateY(0)';
+                }, 50);
+            } else {
+                bookingSummary.classList.add('d-none');
+            }
+        });
+    }
+});
+</script>

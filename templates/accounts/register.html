@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register - TurfZone{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container" data-aos="fade-up">
+    <h2><i class="fas fa-user-plus me-2"></i>Register</h2>
+    {% if form.errors %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle me-2"></i>Please correct the errors below.
+    </div>
+    {% endif %}
+    <form method="post" class="auth-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="{{ form.username.id_for_label }}">
+                <i class="fas fa-user me-2"></i>Username
+            </label>
+            {{ form.username }}
+            {% if form.username.errors %}
+            <ul class="errorlist">
+                {% for error in form.username.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.email.id_for_label }}">
+                <i class="fas fa-envelope me-2"></i>Email
+            </label>
+            {{ form.email }}
+            {% if form.email.errors %}
+            <ul class="errorlist">
+                {% for error in form.email.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.phone_number.id_for_label }}">
+                <i class="fas fa-phone me-2"></i>Phone Number
+            </label>
+            {{ form.phone_number }}
+            {% if form.phone_number.errors %}
+            <ul class="errorlist">
+                {% for error in form.phone_number.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.address.id_for_label }}">
+                <i class="fas fa-map-marker-alt me-2"></i>Address
+            </label>
+            {{ form.address }}
+            {% if form.address.errors %}
+            <ul class="errorlist">
+                {% for error in form.address.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.password1.id_for_label }}">
+                <i class="fas fa-lock me-2"></i>Password
+            </label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+            <ul class="errorlist">
+                {% for error in form.password1.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.password2.id_for_label }}">
+                <i class="fas fa-lock me-2"></i>Confirm Password
+            </label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+            <ul class="errorlist">
+                {% for error in form.password2.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.profile_picture.id_for_label }}">
+                <i class="fas fa-image me-2"></i>Profile Picture
+            </label>
+            {{ form.profile_picture }}
+            {% if form.profile_picture.errors %}
+            <ul class="errorlist">
+                {% for error in form.profile_picture.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        <button type="submit">
+            <i class="fas fa-user-plus me-2"></i>Register
+        </button>
+    </form>
+    <div class="auth-links">
+        <p>Already have an account? 
+            <a href="{% url 'login' %}">
+                <i class="fas fa-sign-in-alt me-1"></i>Login here
+            </a>
+        </p>
+    </div>
+</div>
+{% endblock %}

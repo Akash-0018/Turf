@@ -1,0 +1,577 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - TurfZone{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon revenue">
+                    <i class="fas fa-calendar"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-label">Today's Revenue</div>
+                    <div class="stat-value">₹{{ stats.today_revenue|default:"0" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon bookings">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-label">Pending Bookings</div>
+                    <div class="stat-value">{{ stats.pending_bookings }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon users">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-label">Active Users</div>
+                    <div class="stat-value">{{ stats.active_users }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card">
+                <div class="stat-icon monthly">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-label">Monthly Revenue</div>
+                    <div class="stat-value">₹{{ stats.monthly_revenue|default:"0" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<style>
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.stat-icon.revenue {
+    background: linear-gradient(135deg, #2196f3, #4CAF50);
+}
+
+.stat-icon.bookings {
+    background: linear-gradient(135deg, #FF9800, #FF5722);
+}
+
+.stat-icon.users {
+    background: linear-gradient(135deg, #9C27B0, #E91E63);
+}
+
+.stat-icon.monthly {
+    background: linear-gradient(135deg, #00BCD4, #3F51B5);
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+</style>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Pending Bookings -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h6 class="card-title">
+                        <i class="fas fa-clock me-2"></i>
+                        Pending Bookings
+                    </h6>
+                    <a href="{% url 'admin-bookings' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-external-link-alt me-1"></i>View All
+                    </a>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="table-responsive booking-table">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Facility</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Price</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in pending_bookings %}
+                                <tr>
+                                    <td>
+                                        <div class="user-info">
+                                            <div class="user-avatar">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <span>{{ booking.user.get_full_name|default:booking.user.username }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ booking.facility_sport.facility.name }}</td>
+                                    <td>{{ booking.date }}</td>
+                                    <td>{{ booking.time_slot.get_slot_time_display }}</td>
+                                    <td>₹{{ booking.total_price }}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-success btn-sm approve-booking" 
+                                                    data-booking-id="{{ booking.id }}">
+                                                <i class="fas fa-check me-1"></i>Approve
+                                            </button>
+                                            <button class="btn btn-danger btn-sm reject-booking" 
+                                                    data-booking-id="{{ booking.id }}">
+                                                <i class="fas fa-times me-1"></i>Reject
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6">
+                                        <div class="empty-state">
+                                            <i class="fas fa-check-circle"></i>
+                                            <p>No pending bookings</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue By Facility -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h6 class="card-title">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Revenue by Facility
+                    </h6>
+                </div>
+                <div class="dashboard-card-body">
+                    {% for facility in facility_revenue %}
+                    <div class="revenue-item">
+                        <div class="revenue-info">
+                            <span class="facility-name">{{ facility.name }}</span>
+                            <span class="revenue-amount">₹{{ facility.revenue|default:"0" }}</span>
+                        </div>
+                        <div class="progress-wrapper">
+                            <div class="progress">
+                                <div class="progress-bar" data-percentage="{{ facility.percentage }}"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Revenue Chart -->
+            <div class="dashboard-card mt-4">
+                <div class="dashboard-card-header">
+                    <h6 class="card-title">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Revenue Trend
+                    </h6>
+                </div>
+                <div class="dashboard-card-body">
+                    <canvas id="revenueChart" style="min-height: 250px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="dashboard-card mt-4">
+                <div class="dashboard-card-header">
+                    <h6 class="card-title">
+                        <i class="fas fa-history me-2"></i>
+                        Recent Activity
+                    </h6>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="activity-timeline">
+                        {% for activity in recent_activities %}
+                        <div class="activity-item">
+                            <div class="activity-icon" data-type="{{ activity.type }}">
+                                <i class="fas fa-{{ activity.icon }}"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p class="activity-text">{{ activity.description }}</p>
+                                <span class="activity-time">{{ activity.timestamp }}</span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="empty-state">
+                            <i class="fas fa-history"></i>
+                            <p>No recent activity</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<style>
+/* Dashboard Cards */
+.dashboard-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-card-header {
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.dashboard-card-body {
+    padding: 1.5rem;
+}
+
+/* Table Styles */
+.booking-table {
+    margin: -1.5rem;
+}
+
+.table {
+    margin: 0;
+}
+
+.table thead th {
+    background: #f8f9fa;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    padding: 1rem 1.5rem;
+    border: none;
+}
+
+.table tbody td {
+    padding: 1rem 1.5rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    background: var(--primary-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Revenue Items */
+.revenue-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.revenue-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.revenue-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.facility-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.revenue-amount {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.progress-wrapper {
+    height: 6px;
+    background: var(--background-light);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-wrapper .progress-bar {
+    height: 100%;
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* Activity Timeline */
+.activity-timeline {
+    padding: 0.5rem 0;
+}
+
+.activity-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 0;
+    position: relative;
+}
+
+.activity-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 3rem;
+    left: 1rem;
+    bottom: -1rem;
+    width: 2px;
+    background: var(--border-color);
+}
+
+.activity-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-text {
+    margin: 0 0 0.25rem 0;
+    color: var(--text-primary);
+}
+
+.activity-time {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+}
+
+.empty-state i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    margin: 0;
+}
+
+/* End of Styles */
+</style>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize progress bars
+    document.querySelectorAll('.progress-bar').forEach(bar => {
+        const percentage = bar.getAttribute('data-percentage');
+        bar.style.width = percentage + '%';
+    });
+
+    // Initialize revenue chart
+    var ctx = document.getElementById('revenueChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: JSON.parse('{{ revenue_labels|escapejs }}'),
+                datasets: [{
+                    label: 'Monthly Revenue',
+                    data: JSON.parse('{{ revenue_data|escapejs }}'),
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            boxWidth: 20,
+                            padding: 20,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Monthly Revenue Overview',
+                        padding: {
+                            top: 10,
+                            bottom: 30
+                        },
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            drawBorder: false,
+                            color: 'rgba(0,0,0,0.1)'
+                        },
+                        ticks: {
+                            padding: 10,
+                            callback: function(value) {
+                                return '₹' + value;
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            padding: 10
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Event handlers
+    // Approve booking
+    $('.approve-booking').click(function() {
+        const bookingId = $(this).data('booking-id');
+        if (confirm('Are you sure you want to approve this booking?')) {
+            $.ajax({
+                url: `/bookings/api/${bookingId}/approve/`,
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Error approving booking: ' + xhr.responseJSON.detail);
+                }
+            });
+        }
+    });
+
+    // Reject booking
+    $('.reject-booking').click(function() {
+        const bookingId = $(this).data('booking-id');
+        const reason = prompt('Please enter a reason for rejection:');
+        if (reason !== null) {
+            $.ajax({
+                url: `/bookings/api/${bookingId}/reject/`,
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                data: {
+                    reason: reason
+                },
+                success: function(response) {
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Error rejecting booking: ' + xhr.responseJSON.detail);
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

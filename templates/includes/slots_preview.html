@@ -1,0 +1,226 @@
+{% load static %}
+
+<style>
+.slots-preview {
+    padding: 2rem 0;
+}
+
+.dates-nav {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    -webkit-overflow-scrolling: touch;
+}
+
+.date-tab {
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem 2rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 0 0 auto;
+    min-width: 150px;
+    text-align: center;
+}
+
+.date-tab.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.date-tab:hover:not(.active) {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.preview-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.preview-slot {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.preview-slot:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+.slot-time-display {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.slot-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.status-label {
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-available .status-label {
+    color: var(--success-color);
+}
+
+.status-booked .status-label {
+    color: var(--danger-color);
+}
+
+.status-lunch .status-label {
+    color: var(--warning-color);
+}
+
+.status-past .status-label {
+    color: #999;
+}
+
+.preview-slot.past {
+    opacity: 0.7;
+}
+
+.book-cta {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.book-now-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    background: var(--primary-color);
+    color: white !important;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.book-now-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+}
+
+.no-slots-message {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+}
+</style>
+
+<div class="slots-preview">
+    <div class="dates-nav">
+        {% for date in dates %}
+        <div class="date-tab {% if forloop.first %}active{% endif %}" data-date="{{ date|date:'Y-m-d' }}">
+            <div>{{ date|date:"l" }}</div>
+            <div>{{ date|date:"M d" }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="date-slots-container">
+        {% for date, slots in date_slots.items %}
+        <div class="preview-slots-grid" id="slots-{{ date|date:'Y-m-d' }}" style="{% if not forloop.first %}display: none;{% endif %}">
+            {% for slot in slots %}
+            <div class="preview-slot">
+                <div class="slot-time-display">
+                    <i class="far fa-clock"></i>
+                    {{ slot.display_time }}
+                </div>
+                
+                {% if slot.is_past %}
+                    <div class="slot-status-badge status-past">
+                        <i class="fas fa-clock"></i>
+                        <span class="status-label">Past</span>
+                    </div>
+                {% elif slot.slot_time == "12:00-13:00" %}
+                    <div class="slot-status-badge status-lunch">
+                        <i class="fas fa-utensils"></i>
+                        <span class="status-label">Lunch Break</span>
+                    </div>
+                {% else %}
+                    {% if slot.is_available %}
+                    <div class="slot-status-badge status-available">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="status-label">Available</span>
+                    </div>
+                    {% else %}
+                    <div class="slot-status-badge status-booked">
+                        <i class="fas fa-lock"></i>
+                        <span class="status-label">Booked</span>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="no-slots-message">
+                <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                <h4>No Slots Available</h4>
+                <p>Try selecting a different date</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="book-cta mt-4">
+        <a href="{% url 'booking-page' %}" class="book-now-link">
+            <i class="fas fa-calendar-plus"></i>
+            Book a Slot Now
+        </a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dateTabs = document.querySelectorAll('.date-tab');
+    const slotsContainers = document.querySelectorAll('.preview-slots-grid');
+    
+    dateTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Update active tab
+            dateTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show corresponding slots
+            const date = this.dataset.date;
+            slotsContainers.forEach(container => {
+                if (container.id === `slots-${date}`) {
+                    container.style.display = 'grid';
+                } else {
+                    container.style.display = 'none';
+                }
+            });
+        });
+    });
+});
+</script>

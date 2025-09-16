@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}All Facilities - TurfZone{% endblock %}
+
+{% block content %}
+<div class="facilities-page">
+    <div class="page-header">
+        <h1>Our Sports Facilities</h1>
+        <div class="filters">
+            <input type="text" id="search" placeholder="Search facilities...">
+            <select id="sport-type">
+                <option value="">All Sports</option>
+                <option value="football">Football</option>
+                <option value="cricket">Cricket</option>
+                <option value="basketball">Basketball</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="facility-grid">
+        {% for facility in facilities %}
+        <div class="facility-card animate-fade-in">
+            {% if facility.image %}
+                <img src="{{ facility.image.url }}" alt="{{ facility.name }}">
+            {% else %}
+                <img src="{% static 'images/default-facility.jpg' %}" alt="{{ facility.name }}">
+            {% endif %}
+            <div class="facility-info">
+                <h3>{{ facility.name }}</h3>
+                <p class="sports-type">{{ facility.sports_type }}</p>
+                <p class="description">{{ facility.description|truncatewords:20 }}</p>
+                <p class="capacity">Capacity: {{ facility.capacity }} people</p>
+                <div class="facility-actions">
+                    <a href="{% url 'facility-detail' facility.id %}" class="btn btn-secondary">View Details</a>
+                    {% if user.is_authenticated %}
+                        <a href="#" class="btn btn-primary book-now" data-facility="{{ facility.id }}">Book Now</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-facilities">
+            <p>No facilities available at the moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const search = document.getElementById('search');
+    const sportType = document.getElementById('sport-type');
+    const facilities = document.querySelectorAll('.facility-card');
+
+    function filterFacilities() {
+        const searchTerm = search.value.toLowerCase();
+        const sportFilter = sportType.value.toLowerCase();
+
+        facilities.forEach(facility => {
+            const name = facility.querySelector('h3').textContent.toLowerCase();
+            const sport = facility.querySelector('.sports-type').textContent.toLowerCase();
+            const show = name.includes(searchTerm) && 
+                        (sportFilter === '' || sport.includes(sportFilter));
+            
+            facility.style.display = show ? 'block' : 'none';
+        });
+    }
+
+    search.addEventListener('input', filterFacilities);
+    sportType.addEventListener('change', filterFacilities);
+});
+</script>
+{% endblock %}
