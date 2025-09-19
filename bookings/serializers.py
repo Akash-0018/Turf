@@ -33,6 +33,6 @@ class BookingSerializer(serializers.ModelSerializer):
         )
         
         if conflicts.exists():
-            raise serializers.ValidationError("This time slot is already booked")
+            raise serializers.ValidationError({"detail": "Booking with this Facility sport, Date and Time slot already exists."})
             
         return data

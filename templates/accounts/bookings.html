@@ -3,53 +3,162 @@
 {% block title %}My Bookings{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-    <h2 class="mb-4">My Bookings</h2>
+<div class="container my-5">
+    <h2 class="mb-4 text-center fw-bold" style="color: #2c3e50;">My Bookings</h2>
     
     <div class="booking-list">
         {% if bookings %}
-            {% for booking in bookings %}
-                <div class="card mb-3 booking-card {% if booking.status == 'confirmed' and booking.date >= today %}upcoming{% endif %}">
-                    <div class="card-body">
-                        <h4 class="card-title">{{ booking.facility_sport.facility.name }} - {{ booking.facility_sport.sport.name }}</h4>
-                        <div class="booking-details">
-                            <p><strong>Date:</strong> {{ booking.date }}</p>
-                            <p><strong>Time:</strong> {{ booking.time_slot.get_slot_time_display }}</p>
-                            <p><strong>Status:</strong> {{ booking.get_status_display }}</p>
-                            <p><strong>Total Price:</strong> ₹{{ booking.total_price }}</p>
-                            {% if booking.notes %}
-                                <p><strong>Notes:</strong> {{ booking.notes }}</p>
+            <div class="row">
+                {% for booking in bookings %}
+                <div class="col-lg-6 mb-4">
+                    <div class="booking-card card border-0 shadow-hover {% if booking.status == 'confirmed' and booking.date >= today %}upcoming{% endif %}" 
+                         style="border-radius: 16px; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                        <div class="card-body p-4">
+                            <!-- Status badge -->
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="badge {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'cancelled' %}bg-danger{% else %}bg-warning{% endif %} rounded-pill px-3 py-2">
+                                    {{ booking.get_status_display }}
+                                </span>
+                                {% if booking.status == 'confirmed' and booking.date >= today %}
+                                <span class="upcoming-badge">
+                                    <i class="fas fa-calendar-check me-1"></i>Upcoming
+                                </span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Facility and sport info -->
+                            <h4 class="card-title mb-3" style="color: #2c3e50;">
+                                <i class="fas fa-map-marker-alt me-2" style="color: #e74c3c;"></i>
+                                {{ booking.facility_sport.facility.name }} 
+                                <span class="text-muted">- {{ booking.facility_sport.sport.name }}</span>
+                            </h4>
+                            
+                            <div class="booking-details">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="far fa-calendar-alt me-3" style="color: #3498db; width: 20px;"></i>
+                                    <p class="mb-0"><strong>Date:</strong> {{ booking.date }}</p>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="far fa-clock me-3" style="color: #3498db; width: 20px;"></i>
+                                    <p class="mb-0"><strong>Time:</strong> {{ booking.time_slot.get_slot_time_display }}</p>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-tag me-3" style="color: #3498db; width: 20px;"></i>
+                                    <p class="mb-0"><strong>Base Price:</strong> <span class="text-muted">₹{{ booking.base_price }}</span></p>
+                                </div>
+                                {% if booking.discount_amount > 0 %}
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-percent me-3" style="color: #e74c3c; width: 20px;"></i>
+                                    <p class="mb-0"><strong>Discount:</strong> <span class="text-danger">-₹{{ booking.discount_amount }}</span></p>
+                                </div>
+                                {% endif %}
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-tag me-3" style="color: #3498db; width: 20px;"></i>
+                                    <p class="mb-0"><strong>Final Price:</strong> <span class="text-success fw-bold">₹{{ booking.total_price }}</span></p>
+                                </div>
+                                {% if booking.notes %}
+                                <div class="d-flex mt-3 p-3" style="background-color: #f8f9fa; border-radius: 10px;">
+                                    <i class="fas fa-sticky-note me-3 mt-1" style="color: #f39c12;"></i>
+                                    <p class="mb-0"><strong>Notes:</strong> {{ booking.notes }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            {% if booking.status == 'confirmed' and booking.date >= today %}
+                                <div class="booking-actions mt-4 d-flex gap-2">
+                                    <a href="{% url 'booking-detail' booking.id %}" class="btn btn-primary btn-sm rounded-pill px-3 py-2 flex-fill d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-info-circle me-2"></i>View Details
+                                    </a>
+                                    <button class="btn btn-outline-danger btn-sm cancel-booking rounded-pill px-3 py-2 flex-fill d-flex align-items-center justify-content-center" data-booking-id="{{ booking.id }}">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </button>
+                                </div>
                             {% endif %}
                         </div>
-                        
-                        {% if booking.status == 'confirmed' and booking.date >= today %}
-                            <div class="booking-actions mt-3">
-                                <a href="{% url 'booking-detail' booking.id %}" class="btn btn-primary btn-sm">View Details</a>
-                                <button class="btn btn-danger btn-sm cancel-booking" data-booking-id="{{ booking.id }}">Cancel Booking</button>
-                            </div>
-                        {% endif %}
                     </div>
                 </div>
-            {% endfor %}
+                {% endfor %}
+            </div>
         {% else %}
-            <div class="alert alert-info">
-                You don't have any bookings yet. 
-                <a href="{% url 'home' %}" class="alert-link">Book a slot now!</a>
+            <div class="empty-state text-center py-5">
+                <div class="empty-state-icon mb-4">
+                    <i class="far fa-calendar-alt" style="font-size: 5rem; color: #bdc3c7;"></i>
+                </div>
+                <h3 class="mb-3" style="color: #7f8c8d;">No bookings yet</h3>
+                <p class="text-muted mb-4">You haven't made any bookings. Start exploring our facilities and book your first session!</p>
+                <a href="{% url 'home' %}" style="background:  linear-gradient(135deg, #2E8B57 0%, #3b82f6 100%);color:white;" class="btn rounded-pill px-4 py-2">
+                    <i class="fas fa-plus me-2"></i>Book a Slot Now
+                </a>
             </div>
         {% endif %}
     </div>
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    .booking-card {
+        border-left: 4px solid #3498db;
+    }
+    
+    .booking-card.upcoming {
+        border-left: 4px solid #2ecc71;
+    }
+    
+    .booking-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+    }
+    
+    .shadow-hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    
+    .upcoming-badge {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+        padding: 0.35em 0.65em;
+        border-radius: 50px;
+        font-size: 0.75em;
+        font-weight: 600;
+    }
+    
+    .empty-state {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+    }
+    
+    .btn {
+       
+        background: linear-gradient(135deg, #2E8B57 0%, #3b82f6 100%);
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #2E8B57 0%, #3b82f6 100%);
+    }
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
 document.querySelectorAll('.cancel-booking').forEach(button => {
     button.addEventListener('click', async (e) => {
-        if (!confirm('Are you sure you want to cancel this booking?')) {
+        if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
             return;
         }
         
         const bookingId = e.target.dataset.bookingId;
+        const button = e.target;
+        
+        // Show loading state
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Cancelling...';
+        button.disabled = true;
+        
         try {
             const response = await fetch(`/api/bookings/${bookingId}/cancel/`, {
                 method: 'POST',
@@ -59,12 +168,23 @@ document.querySelectorAll('.cancel-booking').forEach(button => {
             });
             
             if (response.ok) {
-                window.location.reload();
+                // Show success message before reloading
+                button.innerHTML = '<i class="fas fa-check me-2"></i>Cancelled';
+                button.classList.remove('btn-outline-danger');
+                button.classList.add('btn-success');
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             } else {
+                button.innerHTML = '<i class="fas fa-times me-2"></i>Try Again';
+                button.disabled = false;
                 alert('Failed to cancel booking. Please try again.');
             }
         } catch (error) {
             console.error('Error:', error);
+            button.innerHTML = '<i class="fas fa-times me-2"></i>Try Again';
+            button.disabled = false;
             alert('An error occurred while canceling the booking.');
         }
     });

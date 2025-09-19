@@ -6,64 +6,863 @@
 
 {% block extra_css %}
 <style>
-    .offers-section .offer-card {
-        transition: transform 0.3s ease;
-        background: white;
-        min-height: 280px;
+    :root {
+        --primary: #2E8B57;
+        --primary-dark: #1F6B48;
+        --primary-light: #E8F5E9;
+        --secondary: #4630eb;
+        --accent: #00A8E8;
+        --gold: #FFD700;
+        --light: #F8F9FA;
+        --dark: #212529;
+        --gray: #6C757D;
+        --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        --gradient-secondary: linear-gradient(135deg, var(--secondary), #E85A1F);
+        --gradient-accent: linear-gradient(135deg, var(--accent), #0095D0);
+        --gradient-gold: linear-gradient(135deg, var(--gold), #FFC400);
+        --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 8px 15px rgba(0, 0, 0, 0.08);
+        --shadow-lg: 0 15px 30px rgba(0, 0, 0, 0.12);
+        --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
+        --border-radius: 16px;
+        --border-radius-lg: 24px;
+        --transition: all 0.3s ease;
+        --transition-slow: all 0.5s ease;
     }
-    
-    .offers-section .offer-card:hover {
-        transform: translateY(-10px);
+
+    body {
+        overflow-x: hidden;
     }
-    
-    .offers-section .discount-badge {
-        transform: rotate(0);
-        transition: transform 0.3s ease;
+
+    /* Hero Section */
+    .hero-section {
+        position: relative;
+        height: 110vh;
+        min-height: 800px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: -120px;
     }
-    
-    .offers-section .offer-card:hover .discount-badge {
-        transform: rotate(-5deg) scale(1.05);
+
+
+
+    /* Overlay Gradients */
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 0.7) 100%);
+        z-index: 4;
     }
-    
-    .offers-section .card-title {
-        font-size: 1.5rem;
+
+    .hero-content {
+        position: relative;
+        text-align: center;
+        color: white;
+        width: 90%;
+        max-width: 900px;
+        z-index: 10;
+        padding: 2rem;
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        border-radius: var(--border-radius-lg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: var(--shadow-xl);
+        margin-top: 80px;
+    }
+
+    .hero-title {
+        font-size: 4.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        letter-spacing: 1px;
+        background: linear-gradient(to right, #fff, var(--gold), #d1ffd1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        position: relative;
+        display: inline-block;
+    }
+
+    .hero-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 4px;
+        background: var(--gradient-gold);
+        border-radius: 2px;
+    }
+
+    .hero-subtitle {
+        font-size: 1.8rem;
+        font-weight: 400;
+        margin-bottom: 1.5rem;
+        opacity: 0.9;
+    }
+
+    .hero-description {
+        margin-bottom: 2rem;
+        font-size: 1.2rem;
+        line-height: 1.6;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        opacity: 0.9;
+    }
+
+    .location-badge {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        padding: 0.8rem 1.5rem;
+        border-radius: 50px;
+        margin-bottom: 2rem;
+        font-weight: 500;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: var(--transition);
+    }
+
+    .location-badge:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+    }
+
+    .location-badge i {
+        margin-right: 0.5rem;
+        color: var(--gold);
+    }
+
+    .hero-cta .btn {
+        padding: 1rem 2.5rem;
+        font-size: 1.2rem;
         font-weight: 600;
+        border-radius: 50px;
+        background: var(--gradient-primary);
+        border: none;
+        box-shadow: var(--shadow-lg);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
     }
-    
-    .offers-section .card-text {
-        font-size: 1.1rem;
+
+    .hero-cta .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: var(--transition);
+        z-index: -1;
     }
-    
-    .offers-section .validity {
-        font-size: 0.9rem;
+
+    .hero-cta .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(46, 139, 87, 0.3);
+    }
+
+    .hero-cta .btn:hover::before {
+        opacity: 1;
+    }
+
+    /* Section Styling */
+    .section-title {
+        position: relative;
+        font-size: 2.8rem;
+        font-weight: 700;
+        margin-bottom: 3rem;
+        text-align: center;
+        color: var(--dark);
+        padding-bottom: 1rem;
+    }
+
+    .section-title::after {
+        content: '';
+        display: block;
+        width: 100px;
+        height: 5px;
+        background: var(--gradient-primary);
+        margin: 0.5rem auto;
+        border-radius: 3px;
+    }
+
+    /* Slots Section */
+    .slots-section {
+        background: var(--light);
+        position: relative;
+        overflow: hidden;
+        padding: 5rem 0;
+    }
+
+    .slots-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%232E8B57' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        opacity: 0.3;
+        z-index: 0;
+    }
+
+    .slots-container {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Weather & Activity Section */
+    .weather-activity-section {
+        position: relative;
+        padding: 5rem 0;
+        background: linear-gradient(to bottom, var(--light), white);
+    }
+
+    .weather-widget {
+        border-radius: var(--border-radius-lg);
+        overflow: hidden;
+        border: none;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+        background: var(--gradient-primary);
+        color: white;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .weather-widget::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 200%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: rotate(30deg);
+    }
+
+    .weather-widget:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .weather-widget .card-body {
+        position: relative;
+        z-index: 1;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .weather-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        display: block;
+        color: var(--gold);
+    }
+
+    .temperature {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .conditions {
+        font-size: 1.3rem;
+        margin-bottom: 0.5rem;
         font-weight: 500;
     }
-    
-    .swiper-slide {
-        height: auto;
+
+    .humidity {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    .activity-feed {
+        border-radius: var(--border-radius-lg);
+        overflow: hidden;
+        border: none;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+        height: 100%;
+        background: white;
+    }
+
+    .activity-feed:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .activity-feed .card-body {
+        padding: 2rem;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 1.2rem 1rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        transition: var(--transition);
+        border-radius: var(--border-radius);
+    }
+
+    .activity-item:hover {
+        background: var(--primary-light);
+        transform: translateX(5px);
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        background: var(--gradient-primary);
+        color: white;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1.2rem;
+        flex-shrink: 0;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .activity-content p {
+        margin-bottom: 0.25rem;
+        font-weight: 500;
+        color: var(--dark);
+    }
+
+    .activity-content small {
+        color: var(--gray);
+        font-weight: 500;
+    }
+
+    /* Sports Section */
+    .sports-section {
+        background: white;
+        position: relative;
+        padding: 5rem 0;
+    }
+
+    .sport-card {
+        border-radius: var(--border-radius-lg);
+        overflow: hidden;
+        border: none;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+        text-align: center;
+        padding: 2rem 1.5rem;
+        height: 100%;
+        background: white;
+        position: relative;
+        z-index: 1;
+    }
+
+    .sport-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--gradient-primary);
+        opacity: 0;
+        transition: var(--transition);
+        z-index: -1;
+    }
+
+    .sport-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-xl);
+        color: white;
+    }
+
+    .sport-card:hover::before {
+        opacity: 1;
+    }
+
+    .sport-card:hover .price {
+        color: white;
+    }
+
+    .sport-icon {
+        height: 90px;
+        margin-bottom: 1.5rem;
+        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        transition: var(--transition);
+    }
+
+    .sport-card:hover .sport-icon {
+        transform: scale(1.15);
+        filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2));
+    }
+
+    .sport-card .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        transition: var(--transition);
+    }
+
+    .price {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 0;
+        transition: var(--transition);
+    }
+
+    /* Offers Section */
+    .offers-section {
+        background: linear-gradient(135deg, #f6f9fc 0%, #e9f2eb 100%);
+        position: relative;
+        overflow: hidden;
+        padding: 5rem 0;
+    }
+
+    .offers-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(46, 139, 87, 0.1) 0%, transparent 70%);
+    }
+
+    .offer-card {
+        border-radius: var(--border-radius-lg);
+        overflow: hidden;
+        transition: var(--transition);
+        height: 100%;
+        background: white;
+        position: relative;
+        z-index: 1;
+        box-shadow: var(--shadow-md);
+        border: none;
+    }
+
+    .offer-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--gradient-primary);
+        opacity: 0;
+        transition: var(--transition);
+        z-index: -1;
+    }
+
+    .offer-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: var(--shadow-xl);
+        color: white;
+    }
+
+    .offer-card:hover::before {
+        opacity: 1;
+    }
+
+    .offer-card:hover .card-text {
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    .offer-card .card-body {
+        padding: 2rem;
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .discount-badge {
+        background: var(--gradient-secondary);
+        color: white;
+        padding: 0.7rem 1.2rem;
+        border-radius: 0 0 0 var(--border-radius-lg);
+        font-weight: 800;
+        box-shadow: 0 6px 15px rgba(255, 107, 53, 0.4);
+        transition: var(--transition);
+        z-index: 3;
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+
+    .offer-card:hover .discount-badge {
+        transform: rotate(5deg) scale(1.1);
+    }
+
+    .offer-card .card-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 1.5rem 0 1rem;
+        transition: var(--transition);
+    }
+
+    .offer-card .card-text {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        flex-grow: 1;
+        transition: var(--transition);
+    }
+
+    .offer-card .validity {
+        font-size: 1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        transition: var(--transition);
+    }
+
+    /* Testimonials Section */
+    .testimonials-section {
+        background: white;
+        position: relative;
+        padding: 5rem 0;
+    }
+
+    .overall-rating {
+        display: flex;
+        align-items: center;
+        background: var(--light);
+        padding: 0.8rem 1.5rem;
+        border-radius: 50px;
+        box-shadow: var(--shadow-sm);
+        font-weight: 600;
+    }
+
+    .testimonial-card {
+        border-radius: var(--border-radius-lg);
+        overflow: hidden;
+        border: none;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+        height: 100%;
+        background: white;
+        position: relative;
+    }
+
+    .testimonial-card::after {
+        content: '"';
+        position: absolute;
+        top: -15px;
+        left: 20px;
+        font-size: 100px;
+        color: var(--primary);
+        opacity: 0.1;
+        line-height: 1;
+    }
+
+    .testimonial-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .testimonial-card .card-body {
+        padding: 2.5rem 2rem 2rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .rating {
+        margin-bottom: 1.5rem;
+    }
+
+    .rating i {
+        font-size: 1.2rem;
+    }
+
+    .review-text {
+        position: relative;
+        z-index: 1;
+        font-style: italic;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+        color: var(--dark);
+    }
+
+    .reviewer-info {
+        display: flex;
+        align-items: center;
+        margin-top: auto;
+    }
+
+    .reviewer-pic {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 1rem;
+        border: 3px solid var(--primary);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .reviewer-name {
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    /* Swiper Customization */
+    .swiper-pagination-bullet {
+        width: 12px;
+        height: 12px;
+        background: rgba(255, 255, 255, 0.5);
+        opacity: 1;
+    }
+
+    .swiper-pagination-bullet-active {
+        background: white;
+        transform: scale(1.3);
+    }
+
+    .offers-swiper .swiper-pagination-bullet,
+    .testimonials-swiper .swiper-pagination-bullet {
+        background: rgba(46, 139, 87, 0.3);
+    }
+
+    .offers-swiper .swiper-pagination-bullet-active,
+    .testimonials-swiper .swiper-pagination-bullet-active {
+        background: var(--primary);
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 992px) {
+        .hero-title {
+            font-size: 3.5rem;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero-section {
+            min-height: 700px;
+        }
+        
+        .hero-title {
+            font-size: 2.8rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.4rem;
+        }
+        
+        .section-title {
+            font-size: 2.2rem;
+        }
+        
+        .temperature {
+            font-size: 2.5rem;
+        }
+        
+        .hero-content {
+            padding: 1.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .hero-title {
+            font-size: 2.3rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+        }
+
+        .hero-cta .btn {
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+        }
+    }
+
+    /* Animated Turf Field Background */
+    .animated-turf-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        overflow: hidden;
+    }
+
+    .sky-gradient {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(180deg, #87CEEB 0%, #98FB98 50%, #228B22 100%);
+        animation: sky-shift 20s ease-in-out infinite alternate;
+    }
+
+    .grass-blades {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 200px;
+        z-index: 1;
+    }
+
+    .blade {
+        position: absolute;
+        bottom: 0;
+        width: 4px;
+        height: 60px;
+        background: linear-gradient(to top, #228B22, #32CD32);
+        border-radius: 2px 2px 0 0;
+        animation: blade-sway 3s ease-in-out infinite;
+    }
+
+    .blade1 { left: 10%; animation-delay: 0s; }
+    .blade2 { left: 15%; animation-delay: 0.5s; }
+    .blade3 { left: 20%; animation-delay: 1s; }
+    .blade4 { left: 25%; animation-delay: 1.5s; }
+    .blade5 { left: 30%; animation-delay: 2s; }
+    .blade6 { left: 35%; animation-delay: 2.5s; }
+    .blade7 { left: 40%; animation-delay: 3s; }
+    .blade8 { left: 45%; animation-delay: 3.5s; }
+    .blade9 { left: 50%; animation-delay: 4s; }
+    .blade10 { left: 55%; animation-delay: 4.5s; }
+
+    .field-lines {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 98px,
+            rgba(255, 255, 255, 0.3) 98px,
+            rgba(255, 255, 255, 0.3) 102px
+        );
+        z-index: 1;
+        animation: field-move 15s linear infinite;
+    }
+
+    .floating-icons {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+    }
+
+    .icon {
+        position: absolute;
+        font-size: 2rem;
+        color: rgba(255, 255, 255, 0.8);
+        animation: icon-float 8s ease-in-out infinite;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .icon1 { top: 20%; left: 10%; animation-delay: 0s; }
+    .icon2 { top: 30%; right: 15%; animation-delay: 2s; }
+    .icon3 { top: 50%; left: 20%; animation-delay: 4s; }
+    .icon4 { top: 40%; right: 10%; animation-delay: 6s; }
+    .icon5 { top: 60%; left: 30%; animation-delay: 8s; }
+
+    /* Animation Keyframes */
+    @keyframes sky-shift {
+        0% { background: linear-gradient(180deg, #87CEEB 0%, #98FB98 50%, #228B22 100%); }
+        100% { background: linear-gradient(180deg, #4682B4 0%, #90EE90 50%, #006400 100%); }
+    }
+
+    @keyframes blade-sway {
+        0%, 100% { transform: rotate(0deg); }
+        50% { transform: rotate(5deg); }
+    }
+
+    @keyframes field-move {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-100px); }
+    }
+
+    @keyframes icon-float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        25% { transform: translateY(-10px) rotate(5deg); }
+        50% { transform: translateY(-5px) rotate(-5deg); }
+        75% { transform: translateY(-15px) rotate(3deg); }
+    }
+
+    /* Turf Animation Keyframes */
+    @keyframes turf-float {
+        0%, 100% { transform: translateY(0px) translateX(0px); }
+        25% { transform: translateY(-10px) translateX(5px); }
+        50% { transform: translateY(-5px) translateX(-5px); }
+        75% { transform: translateY(-15px) translateX(10px); }
+    }
+
+    @keyframes turf-rotate {
+        0% { transform: rotate(15deg); }
+        100% { transform: rotate(375deg); }
+    }
+
+    @keyframes turf-scale {
+        0% { transform: scale(1) rotate(0deg); }
+        100% { transform: scale(1.1) rotate(10deg); }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 {% include "includes/review_modal.html" %}
-<!-- Hero Section with Image Carousel -->
 <!-- Hero Section -->
 <div class="hero-section">
-    <div class="swiper hero-swiper">
-        <div class="swiper-wrapper">
-            {% for image in turf.images.all %}
-            <div class="swiper-slide">
-                <img src="{{ image.image.url }}" alt="{{ turf.name }}" class="hero-image">
-                <div class="hero-overlay"></div>
-            </div>
-            {% endfor %}
+    <!-- Animated Turf Field Background -->
+    <div class="animated-turf-background">
+        <div class="sky-gradient"></div>
+        <div class="grass-blades">
+            <div class="blade blade1"></div>
+            <div class="blade blade2"></div>
+            <div class="blade blade3"></div>
+            <div class="blade blade4"></div>
+            <div class="blade blade5"></div>
+            <div class="blade blade6"></div>
+            <div class="blade blade7"></div>
+            <div class="blade blade8"></div>
+            <div class="blade blade9"></div>
+            <div class="blade blade10"></div>
         </div>
-        <div class="swiper-pagination"></div>
-        <div class="swiper-button-next"></div>
-        <div class="swiper-button-prev"></div>
+        <div class="field-lines"></div>
+        <div class="floating-icons">
+            <i class="fas fa-football-ball icon icon1"></i>
+            <i class="fas fa-baseball-ball icon icon2"></i>
+            <i class="fas fa-volleyball-ball icon icon3"></i>
+            <i class="fas fa-basketball-ball icon icon4"></i>
+            <i class="fas fa-table-tennis icon icon5"></i>
+        </div>
     </div>
-    <div class="hero-content" data-aos="fade-up">
+    <!-- Overlay Gradients -->
+    <div class="hero-overlay"></div>
+    <div class="hero-content" data-aos="fade-up" data-aos-duration="1000">
         <h1 class="hero-title">TurfZone</h1>
         <p class="hero-subtitle">Premium Sports Facilities</p>
         <div class="hero-description">
@@ -82,7 +881,7 @@
 </div>
 
 <!-- Available Slots Section -->
-<section class="slots-section py-5">
+<section class="slots-section">
     <div class="container">
         <h2 class="section-title" data-aos="fade-up">Available Slots</h2>
         <div class="slots-container" data-aos="fade-up" data-aos-delay="100">
@@ -92,16 +891,16 @@
 </section>
 
 <!-- Weather and Live Activity Section -->
-<section class="weather-activity-section py-5 bg-light">
+<section class="weather-activity-section">
     <div class="container">
         <div class="row">
             <!-- Weather Widget -->
-            <div class="col-md-4" data-aos="fade-right">
+            <div class="col-lg-4 mb-4 mb-lg-0" data-aos="fade-right">
                 <div class="weather-widget card h-100">
                     <div class="card-body">
                         <h3 class="card-title">Current Weather</h3>
                         <div class="weather-info">
-                            <i class="weather-icon"></i>
+                            <i class="weather-icon fas fa-sun"></i>
                             <div class="temperature">{{ weather.temperature }}°C</div>
                             <div class="conditions">{{ weather.conditions }}</div>
                             <div class="humidity">Humidity: {{ weather.humidity }}%</div>
@@ -110,7 +909,7 @@
                 </div>
             </div>
             <!-- Live Activity Feed -->
-            <div class="col-md-8" data-aos="fade-left">
+            <div class="col-lg-8" data-aos="fade-left">
                 <div class="activity-feed card h-100">
                     <div class="card-body">
                         <h3 class="card-title">Live Activity</h3>
@@ -135,12 +934,12 @@
 </section>
 
 <!-- Sports Available Section -->
-<section class="sports-section py-5">
+<section class="sports-section">
     <div class="container">
         <h2 class="section-title" data-aos="fade-up">Available Sports</h2>
         <div class="row">
             {% for sport in turf_sports %}
-            <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter|multiply:100 }}">
+            <div class="col-md-6 col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter|multiply:100 }}">
                 <div class="sport-card card h-100">
                     <div class="card-body text-center">
                         {% if sport.sport.icon %}
@@ -157,22 +956,22 @@
 </section>
 
 <!-- Current Offers Section -->
-<section class="offers-section py-5 bg-light">
+<section class="offers-section">
     <div class="container">
         <h2 class="section-title" data-aos="fade-up">Current Offers</h2>
         <div class="swiper offers-swiper">
             <div class="swiper-wrapper">
                 {% for offer in offers %}
                 <div class="swiper-slide" data-aos="fade-up" data-aos-delay="{{ forloop.counter|multiply:100 }}">
-                    <div class="offer-card card shadow-sm h-100 border-0">
+                    <div class="offer-card card h-100">
                         <div class="card-body position-relative">
-                            <div class="discount-badge position-absolute top-0 end-0 bg-danger text-white py-2 px-3 rounded-bottom">
-                                <h3 class="mb-0 fw-bold">{{ offer.discount_percentage }}% OFF</h3>
+                            <div class="discount-badge">
+                                <h5 class="mb-0">{{ offer.discount_percentage }}% OFF</h5>
                             </div>
-                            <h4 class="card-title mt-4 mb-3">{{ offer.title }}</h4>
+                            <h4 class="card-title">{{ offer.title }}</h4>
                             <p class="card-text text-muted mb-4">{{ offer.description }}</p>
-                            <div class="d-flex align-items-center mt-auto text-primary">
-                                <i class="fas fa-clock me-2"></i>
+                            <div class="d-flex align-items-center mt-auto">
+                                <i class="fas fa-clock me-2 text-primary"></i>
                                 <p class="validity mb-0">Valid till: {{ offer.end_date|date }}</p>
                             </div>
                         </div>
@@ -185,15 +984,15 @@
                 </div>
                 {% endfor %}
             </div>
-            <div class="swiper-pagination"></div>
+            <div class="swiper-pagination mt-4"></div>
         </div>
     </div>
 </section>
 
 <!-- Testimonials Section -->
-<section class="testimonials-section py-5">
+<section class="testimonials-section">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
             <h2 class="section-title mb-0" data-aos="fade-up">What Our Users Say</h2>
             <div class="overall-rating" data-aos="fade-up">
                 <span class="h4 me-2">{{ facility_rating|floatformat:1 }}</span>
@@ -211,26 +1010,30 @@
             <div class="swiper-wrapper">
                 {% for review in featured_reviews %}
                 <div class="swiper-slide" data-aos="fade-up" data-aos-delay="{{ forloop.counter|multiply:100 }}">
-                    <div class="testimonial-card card">
+                    <div class="testimonial-card card h-100">
                         <div class="card-body">
                             <div class="rating mb-3">
                                 {% for i in "12345"|make_list %}
                                 <i class="fas fa-star {% if forloop.counter <= review.rating %}text-warning{% else %}text-muted{% endif %}"></i>
                                 {% endfor %}
                             </div>
-                            <p class="review-text">{{ review.review_text }}</p>
+                            <p class="review-text">"{{ review.review_text }}"</p>
                             <div class="reviewer-info">
                                 {% if review.user.profile_picture %}
                                 <img src="{{ review.user.profile_picture.url }}" alt="{{ review.user.username }}" class="reviewer-pic">
+                                {% else %}
+                                <div class="reviewer-pic d-flex align-items-center justify-content-center bg-primary text-white rounded-circle">
+                                    {{ review.user.get_full_name|first|default:review.user.username|first }}
+                                </div>
                                 {% endif %}
-                                <div class="reviewer-name">{{ review.user.get_full_name }}</div>
+                                <div class="reviewer-name">{{ review.user.get_full_name|default:review.user.username }}</div>
                             </div>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
-            <div class="swiper-pagination"></div>
+            <div class="swiper-pagination mt-4"></div>
         </div>
     </div>
 </section>
@@ -239,28 +1042,12 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Hero Swiper
-    new Swiper('.hero-swiper', {
-        loop: true,
-        autoplay: {
-            delay: 5000,
-        },
-        pagination: {
-            el: '.swiper-pagination',
-            clickable: true,
-        },
-        navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
-        },
-    });
-
     // Initialize Offers Swiper
-    new Swiper('.offers-swiper', {
+    const offersSwiper = new Swiper('.offers-swiper', {
         slidesPerView: 1,
-        spaceBetween: 20,
+        spaceBetween: 30,
         pagination: {
-            el: '.swiper-pagination',
+            el: '.offers-swiper .swiper-pagination',
             clickable: true,
         },
         breakpoints: {
@@ -274,11 +1061,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Initialize Testimonials Swiper
-    new Swiper('.testimonials-swiper', {
+    const testimonialsSwiper = new Swiper('.testimonials-swiper', {
         slidesPerView: 1,
         spaceBetween: 30,
         pagination: {
-            el: '.swiper-pagination',
+            el: '.testimonials-swiper .swiper-pagination',
             clickable: true,
         },
         breakpoints: {
@@ -291,7 +1078,22 @@ document.addEventListener('DOMContentLoaded', function() {
         },
     });
 
-    // Slots preview functionality is now handled in slots_preview.html
+    // Animate elements on scroll
+    AOS.init({
+        duration: 800,
+        easing: 'ease-in-out',
+        once: true,
+        offset: 100
+    });
+
+    // Add parallax effect to hero section
+    window.addEventListener('scroll', function() {
+        const scrolled = window.pageYOffset;
+        const hero = document.querySelector('.hero-section');
+        if (hero) {
+            hero.style.backgroundPosition = `center ${scrolled * 0.5}px`;
+        }
+    });
 });
 </script>
 {% endblock %}

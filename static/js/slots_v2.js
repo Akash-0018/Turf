@@ -12,13 +12,13 @@ function formatTime(time) {
 }
 
 // Function to format a slot for display
-function formatSlot(slot) {
+function formatSlot(slot, date) {
     let statusClass = '';
     let statusText = '';
     let statusIcon = '';
-    
+
     DEBUG.debug('Formatting slot', slot);
-    
+
     if (slot.is_past) {
         statusClass = 'status-past';
         statusText = 'Past';
@@ -42,10 +42,11 @@ function formatSlot(slot) {
     if (!displayTime && slot.start_time && slot.end_time) {
         displayTime = `${formatTime(slot.start_time)} - ${formatTime(slot.end_time)}`;
     }
-    
+
+    let effectivePrice = slot.discounted_price || slot.price;
     let sportDisplay = slot.sport_name ? `<div class="slot-sport">${slot.sport_name}</div>` : '';
-    let priceDisplay = slot.price ? `<div class="slot-price">₹${slot.price.toFixed(2)}</div>` : '';
-    
+    let priceDisplay = slot.price ? `<div class="slot-price">₹${effectivePrice.toFixed(2)}</div>` : '';
+
     let html = `
         <div class="slot-card ${slot.is_past ? 'past' : ''}" data-slot-id="${slot.id}">
             <div class="slot-time">
@@ -58,7 +59,7 @@ function formatSlot(slot) {
                 <i class="fas ${statusIcon}"></i>
                 <span class="status-label">${statusText}</span>
             </div>`;
-            
+
     if (!slot.is_past && !slot.is_lunch && slot.is_available) {
         const bookingData = {
             id: slot.id,
@@ -66,20 +67,25 @@ function formatSlot(slot) {
             start_time: slot.start_time,
             end_time: slot.end_time,
             sport_name: slot.sport_name,
-            price: slot.price
+            price: slot.price,
+            base_price: slot.price,
+            final_price: effectivePrice,
+            facility_sport_id: slot.facility_sport_id,
+            discount_percentage: slot.discount_percentage || 0,
+            date: date
         };
 
         html += `
-            <button class="book-now-btn" 
+            <button class="book-now-btn"
                     data-booking='${JSON.stringify(bookingData)}'
                     data-bs-toggle="modal"
                     data-bs-target="#bookingModal"
                     onclick="openBookingModal(this)">
                 <i class="fas fa-calendar-check"></i>
-                Book Now (₹${slot.price.toFixed(2)})
+                Book Now (₹${effectivePrice.toFixed(2)})
             </button>`;
     }
-    
+
     html += '</div>';
     return html;
 }
@@ -156,7 +162,7 @@ function loadSlots(date, facilityId = null) {
             DEBUG.info(`Processing ${data.slots.length} slots`);
             const slotsHtml = data.slots.map(slot => {
                 trackSlotOperation('format', slot);
-                return formatSlot(slot);
+                return formatSlot(slot, date);
             }).join('');
             slotsContainer.innerHTML = slotsHtml;
             

@@ -12,12 +12,13 @@ urlpatterns = [
 
     # View URLs
     path('', views.BookingPageView.as_view(), name='booking-page'),
-    path('get-slots/', views.get_slots, name='get-slots'),
+    path('get-slots/', api.get_slots, name='get-slots'),
     path('home-slots/', views.home_get_slots, name='home-slots'),
     path('my-bookings/', views.UserBookingListView.as_view(), name='bookings'),
     path('create/', views.BookingCreateView.as_view(), name='booking-create'),
     path('<int:pk>/', views.BookingDetailView.as_view(), name='booking-detail'),
     path('review/<int:booking_id>/', views.review_booking, name='submit-review'),
+    path('cancel/<int:pk>/', views.cancel_booking, name='booking-cancel'),
     
     # API URLs
     path('api/', include(router.urls)),

@@ -1,5 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.http import JsonResponse
 from django.utils import timezone
 from datetime import datetime, timedelta
 from django.db.models import Q
@@ -57,28 +58,43 @@ def get_slots(request):
     try:
         date_str = request.query_params.get('date')
         facility_id = request.query_params.get('facility_id')
-        
+
+        print(f"[DEBUG] get_slots called with date_str={date_str}, facility_id={facility_id}")
+
         if not date_str:
+            print("[DEBUG] Date parameter is missing")
             return Response({'error': 'Date parameter is required'}, status=400)
-        
+
         # Parse date
         try:
             selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            print(f"[DEBUG] Parsed selected_date={selected_date}")
         except ValueError:
+            print(f"[DEBUG] Invalid date format: {date_str}")
             return Response({'error': 'Invalid date format. Use YYYY-MM-DD'}, status=400)
-        
+
         # Validate facility and get available sports
         if facility_id:
+            try:
+                facility_id = int(facility_id)
+            except ValueError:
+                print(f"[DEBUG] Invalid facility_id: {facility_id}")
+                return Response({'error': 'Facility ID must be a number'}, status=400)
+
             facility_sports = FacilitySport.objects.filter(
                 facility_id=facility_id,
                 is_available=True
             ).select_related('sport', 'facility')
-            
+
+            print(f"[DEBUG] Found {facility_sports.count()} facility_sports for facility_id={facility_id}")
+
             if not facility_sports.exists():
+                print("[DEBUG] No sports available for this facility")
                 return Response({
                     'error': 'No sports available for this facility. Please contact the administrator.'
                 }, status=404)
         else:
+            print("[DEBUG] Facility ID is missing")
             return Response({'error': 'Facility ID is required'}, status=400)
         
         # Get current time for past slot checks
@@ -94,9 +110,12 @@ def get_slots(request):
             date=selected_date,
             status__in=['confirmed', 'payment_pending']
         ).select_related('time_slot')
-        
+
+        print(f"[DEBUG] Found {existing_bookings.count()} existing bookings for facility_id={facility_id}, date={selected_date}")
+
         booked_slots = {(b.time_slot_id, b.facility_sport_id) for b in existing_bookings}
-        
+        print(f"[DEBUG] Booked slots: {booked_slots}")
+
         # Generate slots with availability for each sport
         slots = []
         for time_slot in time_slots:
@@ -147,11 +166,28 @@ def get_slots(request):
             start_date__lte=selected_date,
             end_date__gte=selected_date,
             is_active=True
-        ).values('title', 'discount_percentage')
-        
-        return Response({
-            'slots': slots,
-            'offers': offers
+        )
+
+        # Calculate discounted prices for slots if offers exist
+        if offers.exists():
+            offer = offers.first()  # Take the first active offer
+            discount_percentage = float(offer.discount_percentage)
+
+            for slot in slots:
+                if slot.get('price'):
+                    original_price = slot['price']
+                    discount_amount = original_price * (discount_percentage / 100)
+                    discounted_price = original_price - discount_amount
+                    slot['discounted_price'] = round(discounted_price, 2)
+
+        offers_data = offers.values('title', 'discount_percentage')
+
+        print(f"[DEBUG] Generated {len(slots)} slots, {offers.count()} offers")
+        print(f"[DEBUG] Returning response with {len(slots)} slots")
+
+        return JsonResponse({
+            'available_slots': slots,
+            'offers': list(offers_data)
         })
         
     except Exception as e:
@@ -193,7 +229,7 @@ def book_slot(request):
         
         if existing_booking:
             print("[ERROR] Slot already booked")
-            return Response({'error': 'This slot is already booked'}, status=400)
+            return Response({'error': 'Booking with this Facility sport, Date and Time slot already exists.'}, status=400)
         
         # Create booking
         booking = Booking.objects.create(

@@ -101,26 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setInterval(updateActivityFeed, 60000); // Update every minute
     }
 
-    // Handle date navigation
-    const dateButtons = document.querySelectorAll('.date-btn');
-    dateButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            dateButtons.forEach(btn => btn.classList.remove('btn-primary'));
-            this.classList.add('btn-primary');
-            
-            fetch(`/bookings/get-slots/?date=${this.dataset.date}`)
-                .then(response => response.text())
-                .then(html => {
-                    document.querySelector('.slots-container').innerHTML = html;
-                    // Reinitialize booking buttons after content update
-                    initializeBookingButtons();
-                })
-                .catch(error => {
-                    console.error('Error loading slots:', error);
-                    alert('Error loading slots. Please try again.');
-                });
-        });
-    });
+
 
     // Add scroll animation for navbar
     const navbar = document.querySelector('.navbar');
@@ -269,6 +250,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     return response.json();
                 })
                 .then(data => {
+                    if (data.status === 'error') {
+                        console.error('Booking error:', data.message);
+                        alert('Error creating booking: ' + data.message);
+                        return;
+                    }
                     modal.hide();
                     alert('Booking created successfully!');
                     window.location.reload();

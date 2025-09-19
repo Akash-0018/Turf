@@ -260,6 +260,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Handle modal focus management
     bookingSummaryEl.addEventListener('shown.bs.modal', function() {
+        // Blur inputs to prevent cursor blinking
+        facilitySelect.blur();
+        dateInput.blur();
+        timeSlotSelect.blur();
         confirmBookingBtn.focus();
     });
     
@@ -332,7 +336,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 data.available_slots.forEach(slot => {
                     if (slot.is_available) {
                         const option = document.createElement('option');
-                        option.value = slot.id;
+                        option.value = slot.id.split('_')[1];  // Extract TimeSlot ID
                         option.textContent = slot.display_time;
                         timeSlotSelect.appendChild(option);
                     }
@@ -402,19 +406,26 @@ document.addEventListener('DOMContentLoaded', function() {
     confirmBookingBtn.addEventListener('click', function() {
         loadingModal.show();
         summaryModal.hide();
-        
+
+        const formData = new FormData(form);
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
         fetch('{% url "booking-create" %}', {
             method: 'POST',
-            body: new FormData(form),
+            body: formData,
             headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrftoken
             }
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Booking failed');
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                loadingModal.hide();
+                window.location.href = data.redirect_url;
+            } else {
+                throw new Error(data.message || 'Booking failed');
             }
-            window.location.href = '{% url "bookings" %}';
         })
         .catch(error => {
             console.error('Error:', error);

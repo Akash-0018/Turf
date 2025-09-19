@@ -13,7 +13,7 @@
     {% block extra_head %}{% endblock %}
     
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -27,33 +27,36 @@
     <!-- AOS CSS for animations -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
-    <!-- Custom CSS -->
-    <link href="{% static 'css/style.css' %}" rel="stylesheet">
-    
     {% block extra_css %}{% endblock %}
     
     <style>
     :root {
-        --primary-color: #2196f3;
-        --primary-light: #e3f2fd;
-        --primary-dark: #1976d2;
-        --secondary-color: #ff4081;
-        --success-color: #4caf50;
-        --text-primary: #2c3e50;
-        --text-secondary: #6c757d;
-        --background-light: #f8f9fa;
-        --border-color: #e0e0e0;
-        --gradient-start: #2196f3;
-        --gradient-end: #00bcd4;
+        --primary-color:linear-gradient(135deg,#2E8B57 0%,  #3b82f6 100%);
+        --primary-light: #dbeafe;
+        --primary-dark: #1d4ed8;
+        --secondary-color:  #4630eb;
+        --accent-color:linear-gradient(135deg,#2E8B57 0%,  #3b82f6 100%);
+        --success-color: #10b981;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --background-light: #f9fafb;
+        --background-dark: #111827;
+        --border-color: #e5e7eb;
+        --gradient-start: #2563eb;
+        --gradient-mid: #3b82f6;
+        --gradient-end: #22d3ee;
+        --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        --nav-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     }
     
     body {
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        font-family: 'Inter', sans-serif;
         color: var(--text-primary);
         background-color: var(--background-light);
         min-height: 100vh;
         display: flex;
         flex-direction: column;
+        line-height: 1.6;
     }
 
     main {
@@ -62,43 +65,90 @@
     }
 
     .navbar {
-        background: white;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        padding: 1rem 0;
+        background: rgba(255, 255, 255, 0.812);
+        backdrop-filter: blur(1px);
+        box-shadow: var(--nav-shadow);
+        padding: 0.8rem 0;
+        transition: all 0.3s ease;
+         transition: var(--transition);
+    }
+
+    .navbar-scrolled {
+        padding: 0.5rem 0;
     }
 
     .navbar-brand {
-        font-weight: 600;
-        font-size: 1.5rem;
+        font-weight: 700;
+        font-size: 1.6rem;
         color: var(--primary-color);
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        transition: all 0.3s ease;
     }
     
     .navbar-brand img {
-        height: 40px;
+        height: 42px;
         width: auto;
         object-fit: contain;
+        transition: all 0.3s ease;
     }
     
     .navbar-brand .gradient-text {
-        font-size: 1.25rem;
-        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 700;
+        font-size: 1.35rem;
+        color: var(--text-primary);
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        opacity: 0.9;
     }
 
     .nav-link {
         font-weight: 500;
         padding: 0.5rem 1rem;
         transition: all 0.3s ease;
+        border-radius: 10px;
+        margin: 0 0.15rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+        color: var(--text-primary);
+    }
+
+    .nav-link:not(.btn):before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+        transition: all 0.3s ease;
+        transform: translateX(-50%);
+        border-radius: 10px;
+    }
+
+    .nav-link:not(.btn):hover:before {
+        width: 70%;
     }
 
     .nav-link:hover {
         color: var(--primary-color);
+    }
+
+    .nav-link.btn {
+        border-radius: 12px;
+        padding: 0.6rem 1.2rem;
+        box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .nav-link.btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3);
     }
 
     .message-container {
@@ -106,16 +156,39 @@
         top: 20px;
         right: 20px;
         z-index: 1050;
-        max-width: 350px;
+        max-width: 500px;
     }
 
     .alert {
+        position: relative;
         border: none;
         border-radius: 12px;
-        padding: 1rem;
+        padding: 1rem 1.2rem;
         margin-bottom: 1rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        animation: slideIn 0.3s ease-out;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: linear-gradient(135deg, #2E8B57 0%, #3b82f6 100%) !important;
+        color: white !important;
+        border-left: 4px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .alert-success {
+        border-left-color: rgba(16, 185, 129, 0.8);
+    }
+
+    .alert-error, .alert-danger {
+        border-left-color: rgba(239, 68, 68, 0.8);
+    }
+
+    .alert-info {
+        border-left-color: rgba(59, 130, 246, 0.8);
+    }
+
+    .alert-warning {
+        border-left-color: rgba(245, 158, 11, 0.8);
     }
 
     @keyframes slideIn {
@@ -130,70 +203,243 @@
     }
 
     .footer {
-        background: #1a1a1a;
+        background: var(--background-dark);
         color: white;
-        padding: 3rem 0;
+        padding: 4rem 0 2rem;
         margin-top: auto;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .footer:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(to right, var(--primary-color), var(--accent-color));
     }
 
     .footer h5 {
         color: white;
         font-weight: 600;
         margin-bottom: 1.5rem;
+        position: relative;
+        display: inline-block;
+    }
+
+    .footer h5:after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        width: 40px;
+        height: 3px;
+        background: var(--accent-color);
+        border-radius: 3px;
     }
 
     .footer a {
         color: rgba(255, 255, 255, 0.8);
         text-decoration: none;
-        transition: color 0.3s ease;
+        transition: all 0.3s ease;
+        display: inline-block;
     }
 
     .footer a:hover {
         color: white;
+        transform: translateX(5px);
+    }
+
+    .footer ul li {
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .footer ul li i {
+        color: var(--accent-color);
+        width: 20px;
+    }
+
+    /* Enhanced Quick Links Styling */
+    .footer .quick-links li a {
+        padding: 0.5rem 0.8rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .footer .quick-links li a:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .footer .quick-links li a:hover:before {
+        left: 100%;
+    }
+
+    .footer .quick-links li a:hover {
+        background: rgba(59, 130, 246, 0.1);
+        transform: translateX(8px) scale(1.02);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        color: var(--accent-color);
+    }
+
+    .footer .quick-links li a i.fa-chevron-right {
+        transition: transform 0.3s ease;
+    }
+
+    .footer .quick-links li a:hover i.fa-chevron-right {
+        transform: translateX(3px);
     }
 
     .gradient-text {
-        background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+        background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
         -webkit-background-clip: text;
         background-clip: text;
         -webkit-text-fill-color: transparent;
         display: inline-block;
+        background-size: 200% auto;
+        animation: gradientShift 3s ease infinite;
+    }
+
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
     }
 
     .btn {
-        padding: 0.75rem 2rem;
+        padding: 0.75rem 1.8rem;
         border-radius: 12px;
         font-weight: 500;
         transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #2E8B57 0%, #3b82f6 100%) !important;
+        color: white !important;
+        border: none !important;
+        box-shadow: 0 4px 6px rgba(46, 139, 87, 0.5);
     }
 
     .btn-primary {
         background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
         border: none;
+        box-shadow: 0 4px 6px rgba(37, 99, 235, 0.25);
     }
 
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+        box-shadow: 0 8px 15px rgba(37, 99, 235, 0.35);
+        background: linear-gradient(135deg, var(--primary-dark), var(--accent-color));
     }
 
     .card {
         border: none;
-        border-radius: 15px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
     }
 
     .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Back to top button */
+    #backToTopBtn {
+        position: fixed;
+        bottom: 40px;
+        right: 40px;
+        z-index: 1200;
+        background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+        box-shadow: 0 6px 15px rgba(37, 99, 235, 0.4);
+        cursor: pointer;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.4s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg,#2E8B57 0%,  #3b82f6 100%);
+    }
+
+    #backToTopBtn.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    #backToTopBtn:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.5);
+        background: linear-gradient(135deg,#2E8B57 0%,  #3b82f6 100%);
+    }
+
+    /* Additional decorative elements */
+    .navbar-nav {
+        position: relative;
+    }
+
+    .nav-highlight {
+        position: absolute;
+        bottom: 0;
+        height: 3px;
+        background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+        border-radius: 3px;
+        transition: all 0.3s ease;
+        z-index: 1;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+        .navbar-collapse {
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            margin-top: 1rem;
+        }
+        
+        .nav-link:not(.btn):before {
+            display: none;
+        }
+        
+        .nav-link {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            margin: 0.15rem 0;
+        }
+        
+        .nav-link:hover {
+            background:linear-gradient(135deg,#2E8B57 0%,  #3b82f6 100%);
+            color: white;
+        }
     }
     </style>
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top shadow-sm">
-        <div class="container">
+    <nav style=" transition: var(--transition);" class="navbar navbar-expand-lg navbar-light sticky-top shadow-sm" id="mainNavbar">
+        <div style=" transition: var(--transition);" class="container">
             <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
                 {% if site_settings and site_settings.logo %}
                     <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name|default:'TurfZone' }}" height="40" class="me-2">
@@ -204,46 +450,68 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <div class="nav-highlight" id="navHighlight"></div>
+                <ul class="navbar-nav ms-auto position-relative">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">Home</a>
+                        <a class="nav-link" href="{% url 'home' %}">
+                            <i class="fas fa-home fa-fw"></i> Home
+                        </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link btn btn-primary text-white ms-2" href="{% url 'booking-page' %}">
+                    <li style="background:linear-gradient(135deg,#2E8B57 0%,  #3b82f6 100%);border-radius: 10px;" class="nav-item">
+                        <a class="nav-link btn text-white ms-lg-2 mt-2 mt-lg-0" href="{% url 'booking-page' %}">
                             <i class="fas fa-calendar-plus me-1"></i> Book Now
                         </a>
                     </li>
                     {% if user.is_authenticated %}
                         {% if user.is_admin %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'admin-dashboard' %}">Dashboard</a>
+                                <a class="nav-link" href="{% url 'admin-dashboard' %}">
+                                    <i class="fas fa-chart-line fa-fw"></i> Dashboard
+                                </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'admin-settings' %}">
-                                    <i class="fas fa-cog"></i> Settings
+                                    <i class="fas fa-cog fa-fw"></i> Settings
                                 </a>
                             </li>
                         {% else %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'user-dashboard' %}">Dashboard</a>
+                                <a class="nav-link" href="{% url 'user-dashboard' %}">
+                                    <i class="fas fa-chart-line fa-fw"></i> Dashboard
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'user-bookings' %}">My Bookings</a>
+                                <a class="nav-link" href="{% url 'user-bookings' %}">
+                                    <i class="fas fa-calendar-check fa-fw"></i> My Bookings
+                                </a>
                             </li>
                         {% endif %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'profile' %}">Profile</a>
+                            <a class="nav-link" href="{% url 'profile' %}">
+                                <i class="fas fa-user-circle fa-fw"></i> Profile
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                            <a class="nav-link" href="{% url 'logout' %}">
+                                <i class="fas fa-sign-out-alt fa-fw"></i> Logout
+                            </a>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Login</a>
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt fa-fw"></i> Login
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'register' %}">Register</a>
+                            <a class="nav-link" href="{% url 'register' %}">
+                                <i class="fas fa-user-plus fa-fw"></i> Register
+                            </a>
                         </li>
+                        <li class="nav-item">
+                        <a class="nav-link" href="{% url 'contact' %}">
+                            <i class="fas fa-envelope fa-fw"></i> Contact
+                        </a>
+                    </li>
                     {% endif %}
                 </ul>
             </div>
@@ -255,8 +523,17 @@
     <div class="message-container">
         {% for message in messages %}
         <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <i class="fas 
+                {% if message.tags == 'success' %}fa-check-circle
+                {% elif message.tags == 'error' or message.tags == 'danger' %}fa-exclamation-circle
+                {% elif message.tags == 'warning' %}fa-exclamation-triangle
+                {% else %}fa-info-circle
+                {% endif %}">
+            </i>
+            <div>
+                {{ message }}
+                <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         </div>
         {% endfor %}
     </div>
@@ -268,23 +545,25 @@
     </main>
 
     <!-- Footer -->
-    <footer class="footer bg-dark text-light mt-5">
+    <footer class="footer">
         <div class="container py-4">
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-lg-4 mb-5 mb-lg-0">
                     <h5>About {{ site_settings.site_name|default:'TurfZone' }}</h5>
-                    <p>Your one-stop destination for booking sports facilities. Easy, quick, and secure.</p>
+                    <p class="opacity-80">Your premier destination for booking sports facilities. Experience seamless, quick, and secure reservations.</p>
                 </div>
-                <div class="col-md-4">
+                <div class="col-lg-4 mb-5 mb-lg-0">
                     <h5>Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="{% url 'home' %}" class="text-light">Home</a></li>
-                        <li><a href="#" class="text-light">About Us</a></li>
-                        <li><a href="#" class="text-light">Contact</a></li>
-                        <li><a href="#" class="text-light">Terms & Conditions</a></li>
+                    <ul class="list-unstyled quick-links">
+                        <li><a href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a></li>
+                        <li><a href="{% url 'about' %}"><i class="fas fa-info-circle"></i> About Us</a></li>
+                        <li><a href="{% url 'contact' %}"><i class="fas fa-envelope"></i> Contact</a></li>
+                        <li><a href="{% url 'terms' %}"><i class="fas fa-file-contract"></i> Terms & Conditions</a></li>
+                        <li><a href="{% url 'faq' %}"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                        <li><a href="{% url 'privacy' %}"><i class="fas fa-shield-alt"></i> Privacy Policy</a></li>
                     </ul>
                 </div>
-                <div class="col-md-4">
+                <div class="col-lg-4">
                     <h5>Contact Us</h5>
                     <ul class="list-unstyled">
                         {% if site_settings %}
@@ -298,13 +577,52 @@
                     </ul>
                 </div>
             </div>
-            <hr class="bg-light">
+            <hr class="bg-light opacity-20 my-4">
             <div class="text-center">
-                <p>&copy; {% now "Y" %} {{ site_settings.site_name|default:'TurfZone' }}. All rights reserved.</p>
+                <p class="mb-0 opacity-80">&copy; {% now "Y" %} {{ site_settings.site_name|default:'TurfZone' }}. All rights reserved.</p>
             </div>
         </div>
     </footer>
+    
+    {% include 'includes/back_to_top_button.html' %}
 
+    <script>
+        // Back to top button functionality
+        const backToTopBtn = document.getElementById('backToTopBtn');
+        const navbar = document.getElementById('mainNavbar');
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTopBtn.classList.add('show');
+                navbar.classList.add('navbar-scrolled');
+            } else {
+                backToTopBtn.classList.remove('show');
+                navbar.classList.remove('navbar-scrolled');
+            }
+        });
+
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Nav highlight animation
+        function setNavHighlight() {
+            const activeLink = document.querySelector('.nav-link.active');
+            const highlight = document.getElementById('navHighlight');
+            
+            if (activeLink && highlight) {
+                const linkRect = activeLink.getBoundingClientRect();
+                const navRect = document.querySelector('.navbar-nav').getBoundingClientRect();
+                
+                highlight.style.width = `${linkRect.width}px`;
+                highlight.style.left = `${linkRect.left - navRect.left}px`;
+            }
+        }
+
+        // Initialize on page load and resize
+        document.addEventListener('DOMContentLoaded', setNavHighlight);
+        window.addEventListener('resize', setNavHighlight);
+    </script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- jQuery -->
@@ -320,7 +638,5 @@
         AOS.init();
     </script>
     {% block extra_js %}{% endblock %}
-</body>
-</html>
 </body>
 </html>

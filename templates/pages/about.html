@@ -1,32 +1,56 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}About Us - TurfZone{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <h1 class="text-center mb-4">About TurfZone</h1>
-    
-    <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h3 class="mb-3">Our Story</h3>
-                    <p>Welcome to TurfZone, your premier destination for sports facility bookings. Founded in 2023, we've been committed to making sports accessible to everyone by providing a seamless booking experience for high-quality sports facilities.</p>
-                    
-                    <h3 class="mb-3 mt-4">Our Mission</h3>
-                    <p>Our mission is to promote an active and healthy lifestyle by making sports facilities easily accessible to all. We believe that everyone should have the opportunity to enjoy sports in well-maintained, professional facilities.</p>
-                    
-                    <h3 class="mb-3 mt-4">Why Choose Us?</h3>
-                    <ul>
-                        <li>Easy online booking system</li>
-                        <li>Professional grade facilities</li>
-                        <li>Flexible scheduling options</li>
-                        <li>Competitive pricing</li>
-                        <li>Excellent customer support</li>
-                    </ul>
-                </div>
+<section class="about-hero" data-aos="fade-in">
+    <div class="container">
+        <h1>About TurfZone</h1>
+        <p>Your premier destination for seamless sports facility bookings</p>
+    </div>
+</section>
+
+<section class="about-section" data-aos="fade-up" data-aos-delay="200">
+    <div class="container">
+        <h2>Our Story</h2>
+        <p>Welcome to TurfZone, your premier destination for sports facility bookings. Founded in 2023, we've been committed to making sports accessible to everyone by providing a seamless booking experience for high-quality sports facilities.</p>
+
+        <h2 class="mt-5">Our Mission</h2>
+        <p>Our mission is to promote an active and healthy lifestyle by making sports facilities easily accessible to all. We believe that everyone should have the opportunity to enjoy sports in well-maintained, professional facilities.</p>
+
+        <h2 class="mt-5">Why Choose Us?</h2>
+        <div class="about-features">
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                <i class="fas fa-laptop-code"></i>
+                <h4>Easy Online Booking</h4>
+                <p>Book your favorite sports facilities quickly and easily with our user-friendly platform.</p>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
+                <i class="fas fa-futbol"></i>
+                <h4>Professional Facilities</h4>
+                <p>Access top-notch sports venues maintained to the highest standards.</p>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="500">
+                <i class="fas fa-clock"></i>
+                <h4>Flexible Scheduling</h4>
+                <p>Choose time slots that fit your schedule with ease and convenience.</p>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="600">
+                <i class="fas fa-tags"></i>
+                <h4>Competitive Pricing</h4>
+                <p>Enjoy affordable rates without compromising on quality.</p>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="700">
+                <i class="fas fa-headset"></i>
+                <h4>Excellent Support</h4>
+                <p>Our dedicated team is here to assist you every step of the way.</p>
             </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}

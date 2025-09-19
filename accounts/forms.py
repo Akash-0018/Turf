@@ -24,17 +24,12 @@ class CustomUserChangeForm(UserChangeForm):
         help_text='Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'
     )
     phone_number = forms.CharField(
-        max_length=15, 
+        max_length=15,
         required=False,
         help_text='Enter a valid phone number'
     )
-    address = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 3}), 
-        required=False,
-        help_text='Your current address'
-    )
     profile_picture = forms.ImageField(
-        required=False, 
+        required=False,
         widget=forms.FileInput(attrs={
             'class': 'form-control',
             'accept': 'image/*'
@@ -44,7 +39,7 @@ class CustomUserChangeForm(UserChangeForm):
     
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email', 'phone_number', 'address', 'profile_picture')
+        fields = ('username', 'first_name', 'last_name', 'email', 'phone_number', 'profile_picture')
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

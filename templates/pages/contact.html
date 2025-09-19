@@ -2,6 +2,80 @@
 
 {% block title %}Contact Us - TurfZone{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Contact page custom styles */
+    .contact-form label {
+        font-weight: 600;
+        color: var(--primary-dark);
+    }
+
+    .contact-form input.form-control,
+    .contact-form textarea.form-control {
+        border-radius: 12px;
+        border: 1.5px solid var(--border-color);
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: none;
+    }
+
+    .contact-form input.form-control:focus,
+    .contact-form textarea.form-control:focus {
+        border-color: var(--gradient-end);
+        box-shadow: 0 0 8px var(--gradient-end);
+        outline: none;
+    }
+
+    .contact-form button.btn-primary {
+        border-radius: 12px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .contact-form button.btn-primary:hover {
+        background: linear-gradient(135deg, var(--primary-dark), var(--accent-color));
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.5);
+        transform: translateY(-2px);
+    }
+
+    .card h3 {
+        color: var(--primary-dark);
+        font-weight: 700;
+        border-bottom: 3px solid var(--gradient-mid);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .card p {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    .card h5 {
+        color: var(--primary-color);
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card h5 i {
+        color: var(--gradient-end);
+        font-size: 1.2rem;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 767px) {
+        .contact-form button.btn-primary {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-5">
     <h1 class="text-center mb-4">Contact Us</h1>

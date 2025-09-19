@@ -1,50 +1,62 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Terms and Conditions - TurfZone{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <h1 class="text-center mb-4">Terms and Conditions</h1>
-    
-    <div class="row">
-        <div class="col-md-10 mx-auto">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h3>1. Acceptance of Terms</h3>
+<section class="page-header" data-aos="fade-in">
+    <div class="container">
+        <h1>Terms and Conditions</h1>
+        <p>Please read our terms carefully before using our services</p>
+    </div>
+</section>
+
+<section class="legal-section" data-aos="fade-up" data-aos-delay="200">
+    <div class="container">
+        <div class="legal-container">
+            <div class="legal-card">
+                <div class="legal-content">
+                    <h2><i class="fas fa-handshake"></i> Terms and Conditions</h2>
+
+                    <h3><i class="fas fa-check-circle"></i> Acceptance of Terms</h3>
                     <p>By accessing and using TurfZone's services, you agree to be bound by these Terms and Conditions.</p>
-                    
-                    <h3 class="mt-4">2. Booking and Cancellation</h3>
+
+                    <h3><i class="fas fa-calendar-alt"></i> Booking and Cancellation</h3>
                     <ul>
                         <li>All bookings are subject to availability</li>
                         <li>Payment must be made at the time of booking</li>
                         <li>Cancellations must be made at least 24 hours before the booking time</li>
                         <li>Refunds are subject to our cancellation policy</li>
                     </ul>
-                    
-                    <h3 class="mt-4">3. User Responsibilities</h3>
+
+                    <h3><i class="fas fa-user-shield"></i> User Responsibilities</h3>
                     <ul>
                         <li>Arrive on time for your booking</li>
                         <li>Follow facility rules and guidelines</li>
                         <li>Maintain proper conduct and sportsmanship</li>
                         <li>Report any issues or damages immediately</li>
                     </ul>
-                    
-                    <h3 class="mt-4">4. Facility Rules</h3>
+
+                    <h3><i class="fas fa-gavel"></i> Facility Rules</h3>
                     <ul>
                         <li>Proper sports attire required</li>
                         <li>No food or drinks on the playing area</li>
                         <li>Follow safety guidelines</li>
                         <li>Respect other users and staff</li>
                     </ul>
-                    
-                    <h3 class="mt-4">5. Liability</h3>
+
+                    <h3><i class="fas fa-exclamation-triangle"></i> Liability</h3>
                     <p>TurfZone is not liable for any injury, loss, or damage during the use of our facilities. Users participate at their own risk.</p>
-                    
-                    <h3 class="mt-4">6. Changes to Terms</h3>
+
+                    <h3><i class="fas fa-edit"></i> Changes to Terms</h3>
                     <p>We reserve the right to modify these terms at any time. Changes will be effective immediately upon posting.</p>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}
