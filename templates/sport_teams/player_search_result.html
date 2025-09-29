@@ -1,0 +1,83 @@
+{% if multiple_users %}
+<div class="alert alert-info mt-3 mb-4">
+    <i class="fas fa-info-circle me-2"></i>Multiple players found with this phone number. Please select the correct player.
+</div>
+{% endif %}
+
+{% for user in found_users %}
+<div class="card mt-3 {% if multiple_users %}border-primary{% endif %}">
+    <div class="card-body">
+        <div class="d-flex align-items-center">
+            {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" 
+                     alt="{{ user.get_full_name }}"
+                     class="rounded-circle me-3"
+                     style="width: 80px; height: 80px; object-fit: cover;">
+            {% else %}
+                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3"
+                     style="width: 80px; height: 80px;">
+                    <i class="fas fa-user fa-2x text-white"></i>
+                </div>
+            {% endif %}
+            
+            <div class="flex-grow-1">
+                <h5 class="mb-1">{{ user.get_full_name|default:user.username }}</h5>
+                <p class="mb-1">
+                    <i class="fas fa-phone me-2"></i>{{ user.phone_number }}
+                    {% if user.email %}
+                        <br><i class="fas fa-envelope me-2"></i>{{ user.email }}
+                    {% endif %}
+                </p>
+                
+                {% if user.player_profile %}
+                    <div class="mt-2">
+                        <span class="badge bg-primary me-2">
+                            <i class="fas {% if user.player_profile.preferred_sport == 'cricket' %}fa-baseball-ball{% else %}fa-futbol{% endif %} me-1"></i>
+                            {{ user.player_profile.get_preferred_sport_display }}
+                        </span>
+                        <span class="badge bg-info">
+                            {{ user.player_profile.get_playing_side_display }}
+                        </span>
+                    </div>
+                    
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            {% if user.player_profile.preferred_sport == 'cricket' %}
+                                {% if user.player_profile.batting_style %}
+                                    <span class="me-2"><i class="fas fa-bat"></i> {{ user.player_profile.get_batting_style_display }}</span>
+                                {% endif %}
+                                {% if user.player_profile.bowling_style %}
+                                    <span class="me-2"><i class="fas fa-bowling-ball"></i> {{ user.player_profile.get_bowling_style_display }}</span>
+                                {% endif %}
+                                {% if user.player_profile.is_wicketkeeper %}
+                                    <span class="me-2"><i class="fas fa-gloves"></i> Wicketkeeper</span>
+                                {% endif %}
+                            {% else %}
+                                {% if user.player_profile.football_position %}
+                                    <span class="me-2"><i class="fas fa-running"></i> {{ user.player_profile.get_football_position_display }}</span>
+                                {% endif %}
+                                {% if user.player_profile.football_style %}
+                                    <span><i class="fas fa-futbol"></i> {{ user.player_profile.get_football_style_display }}</span>
+                                {% endif %}
+                            {% endif %}
+                        </small>
+                    </div>
+                {% else %}
+                    <div class="mt-2">
+                        <span class="badge bg-warning">No player profile set</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="card-footer bg-transparent">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="user_id" value="{{ user.id }}">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-user-plus me-2"></i>Add to Team
+            </button>
+        </form>
+    </div>
+</div>
+{% endfor %}

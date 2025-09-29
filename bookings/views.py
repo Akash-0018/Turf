@@ -14,7 +14,7 @@ from django.db.models import Avg, Count
 from django.http import JsonResponse
 from django.shortcuts import render
 from datetime import datetime, timedelta
-from django.utils import timezone
+import pytz
 
 from django.db.models import Q
 from accounts.decorators import admin_required
@@ -22,9 +22,12 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth import get_user_model
 from .utils import send_booking_notification_to_admin, send_booking_confirmation_to_user
 from django.utils.timesince import timesince
+import json
 
-class BookingPageView(LoginRequiredMixin, TemplateView):
-    template_name = 'bookings/booking_page.html'
+class BookingPageView(LoginRequiredMixin, CreateView):
+    model = Booking
+    template_name = 'bookings/booking_form.html'
+    fields = ['facility_sport', 'date', 'time_slot']
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -92,14 +95,17 @@ class BookingViewSet(viewsets.ModelViewSet):
             end_date__gte=date,
             is_active=True
         ).first()
-        
+
         # Calculate total price
         total_price = facility_sport.price_per_slot
-        
-        # Apply discount if there's an active offer
+
+        # Only apply early bird discount to eligible slots (6-10am)
         if active_offer:
-            discount = total_price * (active_offer.discount_percentage / 100)
-            total_price -= discount
+            slot_start = facility_sport.time_slot.start_time if hasattr(facility_sport, 'time_slot') else None
+            # Early bird offer logic: only for slots starting between 6:00 and 10:00
+            if slot_start and (slot_start.hour >= 6 and slot_start.hour < 10):
+                discount = total_price * (active_offer.discount_percentage / 100)
+                total_price -= discount
         
         # Auto-confirm if user is admin
         initial_status = 'confirmed' if self.request.user.is_admin else 'pending'
@@ -181,11 +187,15 @@ class BookingViewSet(viewsets.ModelViewSet):
 
 class UserBookingListView(LoginRequiredMixin, ListView):
     model = Booking
-    template_name = 'bookings/booking_list.html'
+    template_name = 'bookings/booking_list_new.html'
     context_object_name = 'bookings'
 
     def get_queryset(self):
-        return Booking.objects.filter(user=self.request.user).order_by('-date')
+        return Booking.objects.filter(user=self.request.user).select_related(
+            'facility_sport__facility',
+            'facility_sport__sport',
+            'time_slot'
+        ).order_by('-date')
 
 from django.db import transaction
 from django.urls import reverse
@@ -198,12 +208,32 @@ class BookingCreateView(LoginRequiredMixin, CreateView):
     template_name = 'bookings/booking_form.html'
     fields = ['facility_sport', 'date', 'time_slot']
 
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        form.fields['facility_sport'].widget.attrs.update({'class': 'form-select'})
-        form.fields['date'].widget.attrs.update({'class': 'form-control'})
-        form.fields['time_slot'].widget.attrs.update({'class': 'form-select'})
-        return form
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = context['form']
+        
+        # Update facility_sport field's queryset
+        form.fields['facility_sport'].queryset = FacilitySport.objects.filter(
+            facility__is_active=True,
+            is_available=True
+        ).select_related(
+            'facility',
+            'sport'
+        ).prefetch_related(
+            'facility__images',
+            'facility__facility_reviews'
+        )
+        
+        context.update({
+            'today': timezone.now().date()
+        })
+        return context
+
+        context.update({
+            'facilities': facilities,
+            'today': timezone.now().date()
+        })
+        return context
 
     def form_valid(self, form):
         try:
@@ -384,7 +414,7 @@ def review_booking(request, booking_id):
     context = {
         'booking': booking,
     }
-    return render(request, 'bookings/review_form.html', context)
+    return render(request, 'bookings/review_form_new.html', context)
 
 @login_required
 def cancel_booking(request, pk):
@@ -461,11 +491,10 @@ def get_slots(request):
             # Check if slot is in the past (for today only)
             is_past = False
             if is_today:
-                current_hour = now.hour
-                current_minute = now.minute
-                slot_hour = slot.start_time.hour
-                slot_minute = slot.start_time.minute
-                is_past = (slot_hour < current_hour) or (slot_hour == current_hour and slot_minute <= current_minute)
+                # Convert both times to IST for comparison
+                current_local = timezone.localtime(now)
+                slot_local = timezone.localtime(timezone.make_aware(datetime.combine(date_obj, slot.start_time)))
+                is_past = slot_local <= current_local
 
             # A slot is available if it's:
             # - Not in the past
@@ -504,8 +533,9 @@ def get_slots(request):
                     sport_slot['base_price'] = base_price
                     sport_slot['price'] = base_price  # Keep for backward compatibility
 
-                    # Apply discount if there's an active offer
-                    if active_offer:
+                    # Apply discount only for early bird slots (6-10am)
+                    slot_hour = slot.start_time.hour
+                    if active_offer and (slot_hour >= 6 and slot_hour < 10):
                         discount = base_price * (active_offer.discount_percentage / 100)
                         discounted_price = base_price - discount
                         sport_slot['discounted_price'] = float(discounted_price)
@@ -521,7 +551,7 @@ def get_slots(request):
                 slots.append(slot_data)
 
         return JsonResponse({
-            'slots': slots,
+            'available_slots': slots,  # Changed to match template expectations
             'offers': offers
         })
 
@@ -537,7 +567,7 @@ def home_get_slots(request):
     Returns preview slots for home page.
     Shows slots for next 3 days for all facilities combined.
     """
-    current_datetime = timezone.now()
+    current_datetime = timezone.localtime(timezone.now())
     today = current_datetime.date()
     current_time = current_datetime.time()
     dates = [today + timedelta(days=i) for i in range(3)]
@@ -564,13 +594,10 @@ def home_get_slots(request):
                 current_minute = current_time.minute
                 slot_hour = slot.start_time.hour
                 slot_minute = slot.start_time.minute
-                
                 # Convert both times to minutes for easier comparison
                 current_minutes = current_hour * 60 + current_minute
                 slot_minutes = slot_hour * 60 + slot_minute
-                
                 is_past = slot_minutes <= current_minutes
-            
             is_available = slot.id not in booked_slot_ids and not is_past
             slot_data = {
                 'id': slot.id,
@@ -579,9 +606,31 @@ def home_get_slots(request):
                 'start_time': slot.start_time.strftime('%H:%M'),
                 'end_time': slot.end_time.strftime('%H:%M'),
                 'is_available': is_available,
-                'is_past': is_past
+                'is_past': is_past,
+                'discounted_price': None,
+                'discount_percentage': 0
             }
-        
+            # Early bird offer logic: only for slots starting between 6:00 and 10:00 IST
+            slot_time = timezone.localtime(datetime.combine(date, slot.start_time))
+            slot_hour = slot_time.hour
+            active_offer = None
+            offers = Offer.objects.filter(
+                start_date__lte=date,
+                end_date__gte=date,
+                is_active=True
+            )
+            if offers.exists() and (slot_hour >= 6 and slot_hour < 10):
+                active_offer = offers.first()
+                base_price = None
+                sports = FacilitySport.objects.filter(is_available=True).select_related('sport')
+                if sports.exists():
+                    base_price = float(sports.first().price_per_slot)
+                if base_price:
+                    discount = base_price * (active_offer.discount_percentage / 100)
+                    discounted_price = base_price - discount
+                    slot_data['discounted_price'] = float(discounted_price)
+                    slot_data['discount_percentage'] = active_offer.discount_percentage
+            available_slots.append(slot_data)
         date_slots[date] = available_slots
     
     context = {

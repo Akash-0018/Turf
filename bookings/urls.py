@@ -11,11 +11,11 @@ urlpatterns = [
     path('test/', TemplateView.as_view(template_name='includes/slots_test.html'), name='slots-test'),
 
     # View URLs
-    path('', views.BookingPageView.as_view(), name='booking-page'),
+    path('', views.BookingCreateView.as_view(), name='booking-page'),  # Use BookingCreateView for main booking page
     path('get-slots/', api.get_slots, name='get-slots'),
     path('home-slots/', views.home_get_slots, name='home-slots'),
     path('my-bookings/', views.UserBookingListView.as_view(), name='bookings'),
-    path('create/', views.BookingCreateView.as_view(), name='booking-create'),
+    path('create/', views.BookingCreateView.as_view(), name='booking-create'),  # Keep this for backward compatibility
     path('<int:pk>/', views.BookingDetailView.as_view(), name='booking-detail'),
     path('review/<int:booking_id>/', views.review_booking, name='submit-review'),
     path('cancel/<int:pk>/', views.cancel_booking, name='booking-cancel'),

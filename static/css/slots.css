@@ -1,0 +1,185 @@
+/* Slots Grid Styles */
+.slot-time-group {
+    margin-bottom: 2rem;
+}
+
+.slot-time-header {
+    color: #6c757d;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.slot-card {
+    position: relative;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.slot-card:hover:not(.unavailable):not(.booked) {
+    border-color: #2196F3;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+}
+
+.slot-card.selected {
+    border: 2px solid #2196F3;
+    background-color: #e3f2fd;
+}
+
+.slot-card.unavailable,
+.slot-card.booked {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.slot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.slot-info {
+    flex-grow: 1;
+}
+
+.sport-name {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.slot-time {
+    font-weight: 500;
+    color: #212529;
+}
+
+.price-info {
+    text-align: right;
+}
+
+.base-price {
+    font-size: 0.875rem;
+    color: #6c757d;
+    text-decoration: line-through;
+    margin-bottom: 0.25rem;
+}
+
+.current-price {
+    font-weight: 600;
+    color: #2196F3;
+}
+
+.status-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 1rem;
+}
+
+.discount-badge {
+    position: absolute;
+    top: 0;
+    left: 1rem;
+    background: #f44336;
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0 0 0.5rem 0.5rem;
+    font-weight: 500;
+}
+
+/* Loading Animation */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+.loading {
+    animation: pulse 1.5s infinite;
+}
+
+/* Offers Display */
+.offers-container {
+    margin-bottom: 1.5rem;
+}
+
+.offers-container .alert {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Time Block Headers */
+.time-block {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.time-block::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+}
+
+.time-block.morning::before {
+    background-color: #ffc107;
+}
+
+.time-block.afternoon::before {
+    background-color: #ff9800;
+}
+
+.time-block.evening::before {
+    background-color: #3f51b5;
+}
+
+/* Responsive Grid */
+@media (max-width: 768px) {
+    .slot-card {
+        padding: 0.75rem;
+    }
+
+    .sport-name {
+        font-size: 0.75rem;
+    }
+
+    .slot-time {
+        font-size: 0.875rem;
+    }
+
+    .current-price {
+        font-size: 0.875rem;
+    }
+}
+
+/* Loading Skeleton */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 0.25rem;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}

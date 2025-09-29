@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Reschedule Match Request</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="new_date">New Date:</label>
+            <input type="date" class="form-control" id="new_date" name="new_date" required>
+        </div>
+        <div class="form-group">
+            <label for="new_time">New Time:</label>
+            <input type="time" class="form-control" id="new_time" name="new_time" required>
+        </div>
+        <div class="form-group">
+            <label for="reason">Reason for Rescheduling:</label>
+            <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <a href="{% url 'sport_teams:team_detail' team.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

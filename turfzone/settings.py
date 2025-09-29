@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'corsheaders',
     # Local apps
     'turfzone',
+    'sport_teams.apps.SportTeamsConfig',
     'accounts.apps.AccountsConfig',
     'bookings.apps.BookingsConfig',
     'facilities.apps.FacilitiesConfig',
@@ -95,23 +96,12 @@ DATABASES = {
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+# Password change/reset functionality is disabled
+AUTH_PASSWORD_VALIDATORS = []
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
+# Disable password change/reset functionality
+ACCOUNT_CHANGE_PASSWORD_ENABLED = False
+ACCOUNT_PASSWORD_RESET_ENABLED = False
 
 
 # Internationalization
@@ -119,7 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -163,6 +153,13 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'your-email@gmail.com'  # Replace with your email
 EMAIL_HOST_PASSWORD = 'your-app-password'  # Replace with your app password
 DEFAULT_FROM_EMAIL = 'TurfZone <your-email@gmail.com>'
+
+# WhatsApp Business API settings
+WHATSAPP_API_KEY = 'your-whatsapp-api-key'  # Get this from WhatsApp Business API
+WHATSAPP_PHONE_NUMBER_ID = 'your-phone-number-id'  # Get this from WhatsApp Business API dashboard
+WHATSAPP_BUSINESS_ACCOUNT_ID = 'your-business-account-id'  # Get this from WhatsApp Business API dashboard
+WHATSAPP_ACCESS_TOKEN = 'your-access-token'  # Get this from WhatsApp Business API dashboard
+WHATSAPP_API_VERSION = 'v18.0'  # WhatsApp Graph API version
 
 # Booking notification settings
 ADMIN_EMAIL = 'admin@turfzone.com'  # Replace with admin email

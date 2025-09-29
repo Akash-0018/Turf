@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Teams - TurfZone{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-12">
+            <h2 class="mb-4">
+                <i class="fas fa-users me-2"></i>Teams
+                {% if not user_team %}
+                <button class="btn btn-primary float-end" data-bs-toggle="modal" data-bs-target="#createTeamModal">
+                    <i class="fas fa-plus me-2"></i>Create Team
+                </button>
+                {% endif %}
+            </h2>
+
+            <!-- Teams List -->
+            <div class="row">
+                {% for team in teams %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 team-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title mb-0">{{ team.name }}</h5>
+                                {% if team.captain == user %}
+                                <span class="badge bg-primary">Captain</span>
+                                {% endif %}
+                            </div>
+                            <p class="card-text">
+                                <i class="fas fa-user-shield me-2"></i>Captain: {{ team.captain.get_full_name|default:team.captain.username }}
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-users me-2"></i>Members: {{ team.members.count }}
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-gamepad me-2"></i>Matches Played: {{ team.matches_played }}
+                            </p>
+                            
+                            <div class="mt-3">
+                                {% if team.captain == user %}
+                                    <button class="btn btn-primary btn-call-match" data-team-id="{{ team.id }}">
+                                        <i class="fas fa-flag me-2"></i>Call for Match
+                                    </button>
+                                {% elif not user_team %}
+                                    <button class="btn btn-success btn-join-team" data-team-id="{{ team.id }}">
+                                        <i class="fas fa-user-plus me-2"></i>Join Team
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        No teams found. Be the first to create a team!
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Team Modal -->
+<div class="modal fade" id="createTeamModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-users me-2"></i>Create Team</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTeamForm" method="post" action="{% url 'create_team' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="teamName" class="form-label">Team Name</label>
+                        <input type="text" class="form-control" id="teamName" name="name" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create Team</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call for Match Modal -->
+<div class="modal fade" id="callMatchModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-flag me-2"></i>Call for Match</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="callMatchForm" method="post" action="{% url 'call_match' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="team_id" id="matchTeamId">
+                    <div class="mb-3">
+                        <label for="opponent" class="form-label">Select Opponent Team</label>
+                        <select class="form-select" id="opponent" name="opponent_id" required>
+                            <option value="">Select a team</option>
+                            {% for team in available_opponents %}
+                            <option value="{{ team.id }}">{{ team.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="matchDate" class="form-label">Preferred Date</label>
+                        <input type="date" class="form-control" id="matchDate" name="preferred_date" required min="{{ today|date:'Y-m-d' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Message (Optional)</label>
+                        <textarea class="form-control" id="message" name="message" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Challenge</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.team-card {
+    transition: transform 0.2s;
+    border: none;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+}
+
+.team-card:hover {
+    transform: translateY(-5px);
+}
+
+.badge {
+    font-weight: 500;
+}
+
+.team-card .btn {
+    border-radius: 20px;
+}
+
+.team-card .card-title {
+    color: #2c3e50;
+}
+
+.team-card .card-text {
+    color: #7f8c8d;
+}
+
+.team-card i {
+    color: #3498db;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle Call for Match button clicks
+    document.querySelectorAll('.btn-call-match').forEach(button => {
+        button.addEventListener('click', function() {
+            const teamId = this.dataset.teamId;
+            document.getElementById('matchTeamId').value = teamId;
+            new bootstrap.Modal(document.getElementById('callMatchModal')).show();
+        });
+    });
+
+    // Handle Join Team button clicks
+    document.querySelectorAll('.btn-join-team').forEach(button => {
+        button.addEventListener('click', function() {
+            const teamId = this.dataset.teamId;
+            if (confirm('Are you sure you want to join this team?')) {
+                fetch(`/teams/join/${teamId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showToast('Error joining team', 'error');
+                });
+            }
+        });
+    });
+
+    // Show toast messages
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast position-fixed bottom-0 end-0 m-4 text-white bg-${type === 'success' ? 'success' : 'danger'}`;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `<div class="toast-body">${message}</div>`;
+        document.body.appendChild(toast);
+        new bootstrap.Toast(toast).show();
+        setTimeout(() => toast.remove(), 3000);
+    }
+});
+</script>
+{% endblock %}

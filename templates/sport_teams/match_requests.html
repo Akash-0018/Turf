@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Match Requests - TurfZone{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container mt-4">
+    <!-- Received Match Requests -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-inbox me-2"></i>Received Match Requests
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if received_requests %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Challenger Team</th>
+                                        <th>Preferred Date</th>
+                                        <th>Facility</th>
+                                        <th>Time Slot</th>
+                                        <th>Message</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for request in received_requests %}
+                                    <tr>
+                                        <td>{{ request.challenger.name }}</td>
+                                        <td>{{ request.preferred_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if request.preferred_facility %}
+                                                {{ request.preferred_facility.name }}
+                                            {% else %}
+                                                <span class="text-muted">Not specified</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if request.preferred_time %}
+                                                {{ request.preferred_time.get_slot_time_display }}
+                                            {% else %}
+                                                <span class="text-muted">Not specified</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if request.message %}
+                                                {{ request.message }}
+                                            {% else %}
+                                                <span class="text-muted">No message</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-success btn-sm accept-match"
+                                                    data-request-id="{{ request.id }}">
+                                                <i class="fas fa-check me-1"></i>Accept
+                                            </button>
+                                            <button class="btn btn-danger btn-sm reject-match"
+                                                    data-request-id="{{ request.id }}">
+                                                <i class="fas fa-times me-1"></i>Reject
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="mb-0">No pending match requests</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sent Match Requests -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-paper-plane me-2"></i>Sent Match Requests
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if sent_requests %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Opponent Team</th>
+                                        <th>Preferred Date</th>
+                                        <th>Facility</th>
+                                        <th>Time Slot</th>
+                                        <th>Status</th>
+                                        <th>Response</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for request in sent_requests %}
+                                    <tr>
+                                        <td>{{ request.opponent.name }}</td>
+                                        <td>{{ request.preferred_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if request.preferred_facility %}
+                                                {{ request.preferred_facility.name }}
+                                            {% else %}
+                                                <span class="text-muted">Not specified</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if request.preferred_time %}
+                                                {{ request.preferred_time.get_slot_time_display }}
+                                            {% else %}
+                                                <span class="text-muted">Not specified</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ request.status|yesno:'success,warning,danger' }}">
+                                                {{ request.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if request.response_message %}
+                                                {{ request.response_message }}
+                                            {% elif request.status == 'pending' %}
+                                                <span class="text-muted">Waiting for response</span>
+                                            {% else %}
+                                                <span class="text-muted">No response message</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-paper-plane fa-3x text-muted mb-3"></i>
+                            <p class="mb-0">No match requests sent</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle accept match request
+    document.querySelectorAll('.accept-match').forEach(button => {
+        button.addEventListener('click', function() {
+            const requestId = this.dataset.requestId;
+            if (confirm('Are you sure you want to accept this match request?')) {
+                fetch(`/teams/match/accept/${requestId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showToast('Error accepting match request', 'error');
+                });
+            }
+        });
+    });
+
+    // Handle reject match request
+    document.querySelectorAll('.reject-match').forEach(button => {
+        button.addEventListener('click', function() {
+            const requestId = this.dataset.requestId;
+            const message = prompt('Please enter a reason for rejecting (optional):');
+            
+            if (message !== null) {  // Only proceed if user didn't click Cancel
+                fetch(`/teams/match/reject/${requestId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showToast('Error rejecting match request', 'error');
+                });
+            }
+        });
+    });
+
+    // Show toast messages
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast position-fixed bottom-0 end-0 m-4 text-white bg-${type === 'success' ? 'success' : 'danger'}`;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `<div class="toast-body">${message}</div>`;
+        document.body.appendChild(toast);
+        new bootstrap.Toast(toast).show();
+        setTimeout(() => toast.remove(), 3000);
+    }
+});
+</script>
+{% endblock %}

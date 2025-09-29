@@ -29,8 +29,12 @@ class Facility(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     location = models.CharField(max_length=200, null=True, blank=True)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    google_maps_link = models.URLField(
+        max_length=500, 
+        null=True, 
+        blank=True,
+        help_text="Enter the Google Maps link for the facility location"
+    )
     amenities = models.JSONField(default=list)
     rules = models.TextField(blank=True)
     opening_time = models.TimeField(default='06:00')
@@ -66,6 +70,7 @@ class FacilitySport(models.Model):
     facility = models.ForeignKey(Facility, related_name='sports', on_delete=models.CASCADE)
     sport = models.ForeignKey(SportType, on_delete=models.CASCADE)
     price_per_slot = models.DecimalField(max_digits=10, decimal_places=2)
+    max_players = models.PositiveIntegerField(default=10)
     is_available = models.BooleanField(default=True)
 
     class Meta:
@@ -85,15 +90,15 @@ class Offer(models.Model):
 
 class TimeSlot(models.Model):
     SLOT_CHOICES = [
-        ('06:00-08:00', '6 AM - 8 AM'),
-        ('08:00-10:00', '8 AM - 10 AM'),
-        ('10:00-12:00', '10 AM - 12 PM'),
+        ('06:00-08:00', '6 AM - 8 AM IST'),
+        ('08:00-10:00', '8 AM - 10 AM IST'),
+        ('10:00-12:00', '10 AM - 12 PM IST'),
         ('12:00-13:00', 'Lunch Break'),
-        ('14:00-16:00', '2 PM - 4 PM'),
-        ('16:00-18:00', '4 PM - 6 PM'),
-        ('18:00-20:00', '6 PM - 8 PM'),
-        ('20:00-22:00', '8 PM - 10 PM'),
-        ('22:00-00:00', '10 PM - 12 AM'),
+        ('14:00-16:00', '2 PM - 4 PM IST'),
+        ('16:00-18:00', '4 PM - 6 PM IST'),
+        ('18:00-20:00', '6 PM - 8 PM IST'),
+        ('20:00-22:00', '8 PM - 10 PM IST'),
+        ('22:00-00:00', '10 PM - 12 AM IST'),
     ]
     
     slot_time = models.CharField(max_length=20, choices=SLOT_CHOICES)

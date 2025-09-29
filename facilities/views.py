@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.utils import timezone
 from django.views.generic import ListView, DetailView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -18,6 +19,7 @@ from .models import (
 )
 from reviews.models import Review
 from .serializers import FacilitySerializer, FacilitySportSerializer
+from .forms import FacilityForm, SportTypeForm, FacilitySportForm, SportManagementForm
 
 class FacilityListView(ListView):
     model = Facility
@@ -62,7 +64,7 @@ class FacilityDetailView(DetailView):
         return context
 
 class AdminSettingsView(TemplateView):
-    template_name = 'facilities/admin_settings.html'
+    template_name = 'facilities/admin_settings_new.html'
     
     @method_decorator(admin_required)
     def dispatch(self, request, *args, **kwargs):
@@ -168,48 +170,60 @@ def toggle_offer_active(request, offer_id):
 @admin_required
 def add_facility(request):
     try:
-        data = request.POST
-        facility = Facility.objects.create(
-            name=data.get('name'),
-            description=data.get('description'),
-            location=data.get('location'),
-            latitude=data.get('latitude'),
-            longitude=data.get('longitude'),
-            rules=data.get('rules'),
-            opening_time=data.get('opening_time'),
-            closing_time=data.get('closing_time'),
-            is_active=data.get('is_active') == 'true',
-            amenities=data.getlist('amenities[]')
-        )
-        
-        if 'images' in request.FILES:
-            for i, image in enumerate(request.FILES.getlist('images')):
-                FacilityImage.objects.create(
-                    facility=facility,
-                    image=image,
-                    is_primary=(i == 0),
-                    order=i
-                )
-        
+        form = FacilityForm(request.POST, request.FILES)
+        if form.is_valid():
+            facility = form.save()
+            
+            if 'images' in request.FILES:
+                for i, image in enumerate(request.FILES.getlist('images')):
+                    FacilityImage.objects.create(
+                        facility=facility,
+                        image=image,
+                        is_primary=(i == 0),
+                        order=i
+                    )
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Facility added successfully',
+                'id': facility.id
+            })
+        else:
+            errors = {}
+            for field, error_list in form.errors.items():
+                if field == '__all__':
+                    errors['general'] = [str(e) for e in error_list]
+                else:
+                    errors[field] = [str(e) for e in error_list]
+            
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid form data',
+                'errors': errors
+            }, status=400)
+            
+    except ValidationError as e:
         return JsonResponse({
-            'success': True,
-            'message': 'Facility added successfully',
-            'id': facility.id
-        })
+            'success': False,
+            'message': str(e)
+        }, status=400)
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
 
 @admin_required
 def edit_facility(request, facility_id):
     facility = get_object_or_404(Facility, id=facility_id)
     
     if request.method == 'GET':
+        form = FacilityForm(instance=facility)
         return JsonResponse({
             'name': facility.name,
             'description': facility.description,
             'location': facility.location,
-            'latitude': str(facility.latitude) if facility.latitude else '',
-            'longitude': str(facility.longitude) if facility.longitude else '',
+            'google_maps_link': facility.google_maps_link or '',
             'rules': facility.rules,
             'opening_time': facility.opening_time.strftime('%H:%M'),
             'closing_time': facility.closing_time.strftime('%H:%M'),
@@ -219,39 +233,36 @@ def edit_facility(request, facility_id):
     
     if request.method == 'POST':
         try:
-            data = request.POST
-            
-            # Update all fields from the form
-            facility.name = data.get('name')
-            facility.description = data.get('description')
-            facility.location = data.get('location')
-            facility.latitude = data.get('latitude') if data.get('latitude') else None
-            facility.longitude = data.get('longitude') if data.get('longitude') else None
-            facility.rules = data.get('rules')
-            facility.opening_time = data.get('opening_time')
-            facility.closing_time = data.get('closing_time')
-            # Handle is_active field properly for checkboxes
-            facility.is_active = data.get('is_active', 'off') == 'on'
-            
-            if 'amenities[]' in data:
-                facility.amenities = data.getlist('amenities[]')
-            
-            facility.save()
-            
-            # Handle image uploads
-            if 'images' in request.FILES:
-                for i, image in enumerate(request.FILES.getlist('images')):
-                    FacilityImage.objects.create(
-                        facility=facility,
-                        image=image,
-                        is_primary=(i == 0 and not facility.images.filter(is_primary=True).exists()),
-                        order=facility.images.count() + i
-                    )
-            
+            form = FacilityForm(request.POST, request.FILES, instance=facility)
+            if form.is_valid():
+                facility = form.save()
+                
+                # Handle image uploads
+                if 'images' in request.FILES:
+                    for i, image in enumerate(request.FILES.getlist('images')):
+                        FacilityImage.objects.create(
+                            facility=facility,
+                            image=image,
+                            is_primary=(i == 0 and not facility.images.filter(is_primary=True).exists()),
+                            order=facility.images.count() + i
+                        )
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Facility updated successfully'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid form data',
+                    'errors': form.errors
+                }, status=400)
+                
+        except ValidationError as e:
             return JsonResponse({
-                'success': True,
-                'message': 'Facility updated successfully'
-            })
+                'success': False,
+                'message': str(e)
+            }, status=400)
         except Exception as e:
             return JsonResponse({
                 'success': False,
@@ -455,6 +466,49 @@ def delete_offer(request, offer_id):
 
 @require_POST
 @admin_required
+def toggle_facility_sport_availability(request, facility_id, sport_id):
+    try:
+        facility_sport = get_object_or_404(
+            FacilitySport,
+            facility_id=facility_id,
+            sport_id=sport_id
+        )
+        facility_sport.is_available = not facility_sport.is_available
+        facility_sport.save()
+        
+        return JsonResponse({
+            'success': True,
+            'is_available': facility_sport.is_available
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+
+@require_POST
+@admin_required
+def remove_facility_sport(request, facility_id, sport_id):
+    try:
+        facility_sport = get_object_or_404(
+            FacilitySport,
+            facility_id=facility_id,
+            sport_id=sport_id
+        )
+        facility_sport.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Sport removed from facility'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+
+@require_POST
+@admin_required
 def toggle_review_approved(request, review_id):
     try:
         review = get_object_or_404(Review, id=review_id)
@@ -471,6 +525,112 @@ def toggle_review_approved(request, review_id):
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@login_required
+def get_slots(request):
+    try:
+        date_str = request.GET.get('date')
+        facility_id = request.GET.get('facility_id')
+
+        if not date_str:
+            return JsonResponse({'error': 'Missing date parameter'}, status=400)
+
+        # Parse the date
+        try:
+            date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return JsonResponse({'error': 'Invalid date format'}, status=400)
+
+        # Get all time slots
+        slots = TimeSlot.objects.all()
+        
+        # Format slots for response
+        slots_data = []
+        current_time = timezone.localtime().time()
+        is_today = date == timezone.localtime().date()
+
+        for slot in slots:
+            slot_time = slot.start_time
+            is_past = is_today and slot_time < current_time
+            
+            slot_data = {
+                'id': slot.id,
+                'display_time': f'{slot.start_time.strftime("%I:%M %p")} - {slot.end_time.strftime("%I:%M %p")}',
+                'is_available': not is_past,
+                'is_past': is_past
+            }
+            slots_data.append(slot_data)
+
+        return JsonResponse({
+            'slots': slots_data
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e)
+        }, status=500)
+
+@admin_required
+def manage_facility_sports(request, facility_id):
+    facility = get_object_or_404(Facility, id=facility_id)
+    
+    if request.method == 'GET':
+        form = SportManagementForm(instance=facility)
+        facility_sports = FacilitySport.objects.filter(facility=facility).select_related('sport')
+        
+        return JsonResponse({
+            'facility_name': facility.name,
+            'sports': [
+                {
+                    'id': fs.sport.id,
+                    'name': fs.sport.name,
+                    'price_per_slot': str(fs.price_per_slot),
+                    'is_available': fs.is_available,
+                    'max_players': fs.max_players,
+                    'icon_url': fs.sport.icon.url if fs.sport.icon else None
+                }
+                for fs in facility_sports
+            ],
+            'available_sports': [
+                {
+                    'id': sport.id,
+                    'name': sport.name
+                }
+                for sport in SportType.objects.exclude(
+                    id__in=facility_sports.values_list('sport_id', flat=True)
+                )
+            ]
+        })
+    
+    if request.method == 'POST':
+        try:
+            form = SportManagementForm(request.POST, instance=facility)
+            if form.is_valid():
+                with transaction.atomic():
+                    # Save the new sport to facility
+                    form.save()
+                    
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Facility sports updated successfully'
+                    })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid form data',
+                    'errors': form.errors
+                }, status=400)
+                
+        except ValidationError as e:
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            }, status=400)
 
 class FacilityViewSet(viewsets.ModelViewSet):
     queryset = Facility.objects.all()

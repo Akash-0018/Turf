@@ -1,0 +1,60 @@
+<!-- Add Facility Sports Management Modal -->
+<div class="modal fade" id="manageSportsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Manage Facility Sports</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="facilitySportsForm">
+                    {% csrf_token %}
+                    <div class="facility-sports-list mb-4">
+                        <h6>Current Sports</h6>
+                        <div id="currentSportsList" class="list-group">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div class="add-sport-section">
+                        <h6>Add New Sport</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Sport</label>
+                                    <select class="form-control" name="sport" id="sportSelect">
+                                        <!-- Will be populated by JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Price per Slot</label>
+                                    <input type="number" class="form-control" name="price_per_slot" min="0" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Max Players</label>
+                                    <input type="number" class="form-control" name="max_players" min="1" required>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Available</label>
+                                    <div class="form-check mt-2">
+                                        <input type="checkbox" class="form-check-input" name="is_available" checked>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary save-facility-sports">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>

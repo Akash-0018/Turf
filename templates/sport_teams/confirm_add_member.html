@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Confirm Add Player - {{ team.name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+                        <h2 class="card-title">Confirm Add Player</h2>
+                        <p class="text-muted">Please review the player details before adding to {{ team.name }}</p>
+                    </div>
+
+                    <!-- Player Profile Card -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                {% if user_to_add.profile_picture %}
+                                    <img src="{{ user_to_add.profile_picture.url }}" 
+                                         alt="{{ user_to_add.get_full_name }}"
+                                         class="rounded-circle me-3"
+                                         style="width: 100px; height: 100px; object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3"
+                                         style="width: 100px; height: 100px;">
+                                        <i class="fas fa-user fa-3x text-white"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                <div>
+                                    <h4 class="mb-1">{{ user_to_add.get_full_name|default:user_to_add.username }}</h4>
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-phone me-2"></i>{{ phone_number }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {% if player_profile %}
+                                <div class="border-top pt-3 mt-3">
+                                    <h5 class="mb-3">Player Details</h5>
+                                    
+                                    <div class="mb-3">
+                                        <span class="badge bg-primary me-2">
+                                            <i class="fas {% if player_profile.preferred_sport == 'cricket' %}fa-baseball-ball{% else %}fa-futbol{% endif %} me-1"></i>
+                                            {{ player_profile.get_preferred_sport_display }}
+                                        </span>
+                                        <span class="badge bg-info">
+                                            {{ player_profile.get_playing_side_display }}
+                                        </span>
+                                    </div>
+
+                                    {% if player_profile.preferred_sport == 'cricket' %}
+                                        <div class="row">
+                                            {% if player_profile.batting_style %}
+                                                <div class="col-md-6 mb-2">
+                                                    <i class="fas fa-bat me-2"></i>
+                                                    {{ player_profile.get_batting_style_display }}
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if player_profile.bowling_style %}
+                                                <div class="col-md-6 mb-2">
+                                                    <i class="fas fa-bowling-ball me-2"></i>
+                                                    {{ player_profile.get_bowling_style_display }}
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if player_profile.is_wicketkeeper %}
+                                                <div class="col-md-6 mb-2">
+                                                    <i class="fas fa-gloves me-2"></i>
+                                                    Wicketkeeper
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <div class="row">
+                                            {% if player_profile.football_position %}
+                                                <div class="col-md-6 mb-2">
+                                                    <i class="fas fa-running me-2"></i>
+                                                    {{ player_profile.get_football_position_display }}
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if player_profile.football_style %}
+                                                <div class="col-md-6 mb-2">
+                                                    <i class="fas fa-futbol me-2"></i>
+                                                    {{ player_profile.get_football_style_display }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning mt-3 mb-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    This player hasn't set up their sport preferences yet.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Confirmation Form -->
+                    <form method="post" class="text-center">
+                        {% csrf_token %}
+                        <input type="hidden" name="phone_number" value="{{ phone_number }}">
+                        <div class="d-grid gap-2">
+                            <button type="submit" name="confirm" value="yes" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-plus me-2"></i>Add to Team
+                            </button>
+                            <a href="{% url 'sport_teams:add_member' team.slug %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

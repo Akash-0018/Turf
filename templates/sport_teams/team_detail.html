@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ team.name }} - Teams - {{ block.super }}{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'js/match_requests.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Call for Match Modal -->
+    {% if user == team.captain %}
+    <div class="modal fade" id="callMatchModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-flag me-2"></i>Call for Match</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="callMatchForm" method="post" action="{% url 'sport_teams:call_match' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="team_id" value="{{ team.id }}">
+                        
+                        <div class="mb-3">
+                            <label for="opponent" class="form-label">Select Opponent Team</label>
+                            <select class="form-select" id="opponent" name="opponent_id" required>
+                                <option value="">Choose a team...</option>
+                                {% for opponent in available_opponents %}
+                                    {% if opponent != team %}
+                                        <option value="{{ opponent.id }}">{{ opponent.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="matchDate" class="form-label">Preferred Date</label>
+                            <input type="date" class="form-control" id="matchDate" name="preferred_date" required min="{{ today|date:'Y-m-d' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="facility" class="form-label">Preferred Facility (Optional)</label>
+                            <select class="form-select" id="facility" name="facility_id">
+                                <option value="">Choose a facility...</option>
+                                {% for facility in facilities %}
+                                    <option value="{{ facility.id }}">{{ facility.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="timeSlot" class="form-label">Preferred Time Slot (Optional)</label>
+                            <select class="form-select" id="timeSlot" name="time_slot_id">
+                                <option value="">Choose a time slot...</option>
+                                {% for slot in time_slots %}
+                                    <option value="{{ slot.id }}">{{ slot.start_time|time:"g:i A" }} - {{ slot.end_time|time:"g:i A" }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Message (Optional)</label>
+                            <textarea class="form-control" id="message" name="message" rows="3" 
+                                    placeholder="Any specific details or requirements..."></textarea>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Send Challenge
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Team Header Card -->
+            <div class="card mb-4">
+                <div class="card-body text-center p-4">
+                    <div class="mb-4">
+                        {% if team.logo %}
+                            <img src="{{ team.logo.url }}" alt="{{ team.name }} Logo" 
+                                 class="img-fluid rounded-circle mb-3" 
+                                 style="max-height: 150px; width: auto;">
+                        {% else %}
+                            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3"
+                                 style="width: 150px; height: 150px;">
+                                <i class="fas fa-users fa-4x text-primary"></i>
+                            </div>
+                        {% endif %}
+                        <h1 class="card-title mb-0">{{ team.name }}</h1>
+                        <p class="text-muted mt-2">Created {{ team.created_at|date:"F j, Y" }}</p>
+                    </div>
+
+                    <!-- Team Management Actions -->
+                    <div class="d-flex justify-content-center gap-2 mb-3 flex-wrap">
+                        {% if user == team.captain %}
+                            <a href="{% url 'sport_teams:add_member' team.slug %}" class="btn btn-success">
+                                <i class="fas fa-user-plus me-2"></i>Add Player
+                            </a>
+                            <a href="{% url 'sport_teams:manage_team' team.slug %}" class="btn btn-primary">
+                                <i class="fas fa-cog me-2"></i>Manage Team
+                            </a>
+                            <button class="btn btn-warning call-match-btn" data-bs-toggle="modal" data-bs-target="#callMatchModal">
+                                <i class="fas fa-flag me-2"></i>Call for Match
+                            </button>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteTeamModal">
+                                <i class="fas fa-trash-alt me-2"></i>Delete Team
+                            </button>
+                        {% endif %}
+                        {% if user == team.captain or user == team.vice_captain %}
+                            <a href="{% url 'sport_teams:match_requests' %}" class="btn btn-info">
+                                <i class="fas fa-bell me-2"></i>Match Requests
+                                {% if pending_match_requests %}
+                                    <span class="badge bg-danger">{{ pending_match_requests }}</span>
+                                {% endif %}
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Team Leadership -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-light">
+                                <h5 class="mb-2">
+                                    <i class="fas fa-crown text-warning me-2"></i>Captain
+                                </h5>
+                                <p class="mb-0">{{ team.captain.get_full_name|default:team.captain.username }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-light">
+                                <h5 class="mb-2">
+                                    <i class="fas fa-star text-info me-2"></i>Vice Captain
+                                </h5>
+                                <p class="mb-0">
+                                    {% if team.vice_captain %}
+                                        {{ team.vice_captain.get_full_name|default:team.vice_captain.username }}
+                                    {% else %}
+                                        <span class="text-muted">Not assigned</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Members Card -->
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-users me-2"></i>Team Members
+                    </h4>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for member in team.members.all %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                <div class="d-flex align-items-center">
+                                    {% if member.user.profile_picture %}
+                                        <img src="{{ member.user.profile_picture.url }}" 
+                                             class="rounded-circle me-3"
+                                             style="width: 40px; height: 40px; object-fit: cover;"
+                                             alt="{{ member.user.username }}">
+                                    {% else %}
+                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3"
+                                             style="width: 40px; height: 40px;">
+                                            <i class="fas fa-user text-white"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="mb-0">{{ member.user.get_full_name|default:member.user.username }}</h6>
+                                        <small class="text-muted">
+                                            {% if member.role == 'captain' %}
+                                                <i class="fas fa-crown text-warning me-1"></i>Captain
+                                            {% elif member.role == 'vice_captain' %}
+                                                <i class="fas fa-star text-info me-1"></i>Vice Captain
+                                            {% else %}
+                                                <i class="fas fa-user me-1"></i>Player
+                                            {% endif %}
+                                            · Joined {{ member.joined_at|date:"M j, Y" }}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% if user == team.captain and member.user != team.captain %}
+                                    <div class="dropdown">
+                                        <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <button class="dropdown-item text-danger" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#removeMemberModal{{ member.id }}">
+                                                    <i class="fas fa-user-minus me-2"></i>Remove Member
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- Remove Member Modal -->
+                                    <div class="modal fade" id="removeMemberModal{{ member.id }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Remove Team Member</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to remove {{ member.user.get_full_name|default:member.user.username }} from the team?</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <form action="{% url 'sport_teams:remove_member' team.slug member.id %}" method="post" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-danger">
+                                                            <i class="fas fa-user-minus me-2"></i>Remove
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% empty %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                <h5>No team members yet</h5>
+                                <p class="text-muted">Start by inviting players to join your team</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="text-center mt-4">
+                <a href="{% url 'sport_teams:team_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Teams
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Team Modal -->
+{% if user == team.captain %}
+<div class="modal fade" id="deleteTeamModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Team</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
+                    <h4>Are you sure?</h4>
+                    <p class="text-muted">This action cannot be undone. All team data will be permanently deleted.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{% url 'sport_teams:delete_team' team.slug %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-2"></i>Delete Team
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

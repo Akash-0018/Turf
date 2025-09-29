@@ -1,0 +1,88 @@
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const facilitySelect = document.getElementById('facility');
+    const timeSlotSelect = document.getElementById('timeSlot');
+    const dateInput = document.getElementById('matchDate');
+
+    // Enable/disable time slot select based on facility selection
+    facilitySelect.addEventListener('change', function() {
+        timeSlotSelect.disabled = !this.value;
+        if (this.value && dateInput.value) {
+            fetchTimeSlots();
+        }
+    });
+
+    // Update time slots when date changes
+    dateInput.addEventListener('change', function() {
+        if (facilitySelect.value) {
+            fetchTimeSlots();
+        }
+    });
+
+    // Fetch available time slots
+    function fetchTimeSlots() {
+        const facilityId = facilitySelect.value;
+        const date = dateInput.value;
+
+        if (!facilityId || !date) return;
+
+        fetch(`/facilities/get-slots/?facility=${facilityId}&date=${date}`)
+            .then(response => response.json())
+            .then(data => {
+                timeSlotSelect.innerHTML = '<option value="">Choose a time slot...</option>';
+                data.forEach(slot => {
+                    const option = document.createElement('option');
+                    option.value = slot.id;
+                    option.textContent = slot.time;
+                    timeSlotSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching time slots:', error);
+            });
+    }
+
+    // Handle form submission
+    const callMatchForm = document.getElementById('callMatchForm');
+    if (callMatchForm) {
+        callMatchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('callMatchModal')).hide();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showToast('Error sending match request', 'error');
+            });
+        });
+    }
+
+    // Show toast messages
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast position-fixed bottom-0 end-0 m-4 text-white bg-${type === 'success' ? 'success' : 'danger'}`;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `<div class="toast-body">${message}</div>`;
+        document.body.appendChild(toast);
+        new bootstrap.Toast(toast).show();
+        setTimeout(() => toast.remove(), 3000);
+    }
+});
+</script>
+{% endblock %}

@@ -3,6 +3,12 @@
 
 {% block title %}Admin Settings - TurfZone{% endblock %}
 
+{% block extra_css %}
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
     <div class="settings-container">
@@ -147,6 +153,9 @@
                                 <h4>{{ facility.name }}</h4>
                                 <p>{{ facility.sports.count }} Sports Available</p>
                                 <div class="facility-actions">
+                                    <button class="btn btn-sm btn-info manage-sports" data-id="{{ facility.id }}" data-bs-toggle="modal" data-bs-target="#manageSportsModal">
+                                        <i class="fas fa-running"></i>
+                                    </button>
                                     <button class="btn btn-sm btn-primary edit-facility" data-id="{{ facility.id }}" data-edit="facility">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -329,16 +338,11 @@
                     </div>
                     
                     <div class="row mt-3">
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <div class="form-group">
-                                <label>Latitude</label>
-                                <input type="number" class="form-control" name="latitude" step="0.000001">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Longitude</label>
-                                <input type="number" class="form-control" name="longitude" step="0.000001">
+                                <label>Google Maps Link</label>
+                                <input type="url" class="form-control" name="google_maps_link" placeholder="https://maps.google.com/...">
+                                <small class="text-muted">Paste the full Google Maps link for the facility location</small>
                             </div>
                         </div>
                     </div>
@@ -450,6 +454,107 @@
         </div>
     </div>
 </div>
+
+<!-- Add Facility Sports Management Modal -->
+<div class="modal fade" id="manageSportsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Manage Facility Sports</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="facilitySportsForm">
+                    {% csrf_token %}
+                    <div class="facility-sports-list mb-4">
+                        <h6>Current Sports</h6>
+                        <div id="currentSportsList" class="list-group">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div class="add-sport-section">
+                        <h6>Add New Sport</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Sport</label>
+                                    <select class="form-control" name="sport" id="sportSelect">
+                                        <!-- Will be populated by JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Price per Hour</label>
+                                    <input type="number" class="form-control" name="price_per_hour" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Max Players</label>
+                                    <input type="number" class="form-control" name="max_players" required>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Available</label>
+                                    <div class="form-check mt-2">
+                                        <input type="checkbox" class="form-check-input" name="is_available" checked>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary save-facility-sports">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- Custom Initialization Script -->
+<script>
+jQuery(document).ready(function($) {
+    // Handle modal show event for proper select2 initialization
+    $('#manageSportsModal').on('shown.bs.modal', function () {
+        if ($('#sportSelect').data('select2')) {
+            $('#sportSelect').select2('destroy');
+        }
+        setTimeout(function() {
+            $('#sportSelect').select2({
+                theme: 'bootstrap-5',
+                dropdownParent: $('#manageSportsModal'),
+                placeholder: 'Select a sport',
+                allowClear: true,
+                width: '100%'
+            });
+        }, 100);
+    });
+
+    // Handle facility form initialization
+    function initializeFacilityForm() {
+        // Hide the latitude/longitude fields
+        $('input[name="latitude"]').closest('.row').hide();
+        $('input[name="longitude"]').closest('.row').hide();
+    }
+
+    // Call initialization on document ready
+    initializeFacilityForm();
+    
+    // Reinitialize when add facility button is clicked
+    $('[data-bs-toggle="modal"][data-bs-target="#addFacilityModal"]').on('click', function() {
+        setTimeout(initializeFacilityForm, 100);
+    });
+});
+</script>
 
 <!-- Add Offer Modal -->
 <div class="modal fade" id="addOfferModal" tabindex="-1">
@@ -1106,6 +1211,42 @@
     transform: translateY(-2px);
 }
 
+/* Facility Sports Management */
+.btn-info {
+    background: linear-gradient(135deg, #0dcaf0, #0d6efd);
+    color: white;
+    border: none;
+}
+
+.btn-info:hover {
+    background: linear-gradient(135deg, #0d6efd, #0dcaf0);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(13, 202, 240, 0.3);
+}
+
+.facility-sports-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.list-group-item {
+    border-radius: 8px !important;
+    margin-bottom: 0.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.list-group-item:last-child {
+    margin-bottom: 0;
+}
+
+.add-sport-section {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+}
+
 /* Modal Enhancements */
 .modal-content {
     border-radius: 20px;
@@ -1492,5 +1633,290 @@ document.addEventListener('DOMContentLoaded', function() {
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+{% block extra_js %}
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<!-- Custom JS -->
 <script src="{% static 'js/admin-settings.js' %}"></script>
+<script src="{% static 'js/facility-sports.js' %}"></script>
+
+<script>
+// Initialize Select2 after jQuery and Select2 are loaded
+$(document).ready(function() {
+    // Initialize all Select2 elements
+    $('.select2').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select items',
+        allowClear: true
+    });
+
+    // Handle facility sports management
+    document.querySelectorAll('.manage-sports').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const facilityId = this.dataset.id;
+            loadFacilitySports(facilityId);
+        });
+    });
+});
+</script>
+{% endblock %}
+
+<!-- Add Facility Sports Management Modal -->
+<div class="modal fade" id="manageSportsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Manage Facility Sports</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="facilitySportsForm">
+                    {% csrf_token %}
+                    <div class="facility-sports-list mb-4">
+                        <h6>Current Sports</h6>
+                        <div id="currentSportsList" class="list-group">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div class="add-sport-section">
+                        <h6>Add New Sport</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Sport</label>
+                                    <select class="form-control" name="sport" id="sportSelect">
+                                        <!-- Will be populated by JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Price per Hour</label>
+                                    <input type="number" class="form-control" name="price_per_hour" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Max Players</label>
+                                    <input type="number" class="form-control" name="max_players" required>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Available</label>
+                                    <div class="form-check mt-2">
+                                        <input type="checkbox" class="form-check-input" name="is_available" checked>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary save-facility-sports">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Facility Sports Management */
+.btn-info {
+    background: linear-gradient(135deg, #0dcaf0, #0d6efd);
+    color: white;
+    border: none;
+}
+
+.btn-info:hover {
+    background: linear-gradient(135deg, #0d6efd, #0dcaf0);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(13, 202, 240, 0.3);
+}
+
+.facility-sports-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.list-group-item {
+    border-radius: 8px !important;
+    margin-bottom: 0.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.list-group-item:last-child {
+    margin-bottom: 0;
+}
+
+.add-sport-section {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+}
+</style>
+
+<script>
+// Handle facility sports management
+document.querySelectorAll('.manage-sports').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const facilityId = this.dataset.id;
+        loadFacilitySports(facilityId);
+    });
+});
+
+function loadFacilitySports(facilityId) {
+    fetch(`/facilities/admin/facility/${facilityId}/sports/`)
+        .then(response => response.json())
+        .then(data => {
+            const currentSportsList = document.getElementById('currentSportsList');
+            const sportSelect = document.getElementById('sportSelect');
+            const form = document.getElementById('facilitySportsForm');
+            
+            // Set facility ID for form submission
+            form.dataset.facilityId = facilityId;
+            
+            // Update facility name in modal title
+            document.querySelector('#manageSportsModal .modal-title').textContent = 
+                `Manage Sports for ${data.facility_name}`;
+            
+            // Clear and populate current sports list
+            currentSportsList.innerHTML = '';
+            data.sports.forEach(sport => {
+                currentSportsList.innerHTML += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">${sport.name}</h6>
+                            <small>₹${sport.price_per_slot}/slot - Max ${sport.max_players} players</small>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input sport-availability" type="checkbox" 
+                                   ${sport.is_available ? 'checked' : ''} 
+                                   data-sport-id="${sport.id}">
+                            <label class="form-check-label">Available</label>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Clear and populate available sports dropdown
+            sportSelect.innerHTML = '';
+            data.available_sports.forEach(sport => {
+                sportSelect.innerHTML += `
+                    <option value="${sport.id}">${sport.name}</option>
+                `;
+            });
+
+            // Initialize or reinitialize Select2 for sport selection
+            if ($('#sportSelect').hasClass('select2-hidden-accessible')) {
+                $('#sportSelect').select2('destroy');
+            }
+            $('#sportSelect').select2({
+                theme: 'bootstrap-5',
+                dropdownParent: $('#manageSportsModal'),
+                placeholder: 'Select a sport',
+                allowClear: true,
+                width: '100%'
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error loading facility sports', 'error');
+        });
+}
+
+// Handle saving facility sports
+document.querySelector('.save-facility-sports').addEventListener('click', function() {
+    const form = document.getElementById('facilitySportsForm');
+    const facilityId = form.dataset.facilityId;
+    const formData = new FormData(form);
+    
+    fetch(`/facilities/admin/facility/${facilityId}/sports/`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message || 'Sports updated successfully', 'success');
+            $('#manageSportsModal').modal('hide');
+            // Reload the page to refresh the facility cards
+            location.reload();
+        } else {
+            showToast(data.message || 'Error updating sports', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Error updating sports', 'error');
+    });
+});
+
+// Handle sport availability toggle
+$(document).on('change', '.sport-availability', function() {
+    const facilityId = $('#facilitySportsForm').data('facilityId');
+    const sportId = $(this).data('sportId');
+    const isAvailable = $(this).prop('checked');
+    
+    fetch(`/facilities/admin/facility/${facilityId}/sports/${sportId}/toggle/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Sport availability updated', 'success');
+        } else {
+            showToast(data.message || 'Error updating sport availability', 'error');
+            $(this).prop('checked', !isAvailable); // Revert the checkbox
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Error updating sport availability', 'error');
+        $(this).prop('checked', !isAvailable); // Revert the checkbox
+    });
+});
+
+// Handle sport removal
+$(document).on('click', '.remove-sport', function() {
+    const facilityId = $('#facilitySportsForm').data('facilityId');
+    const sportId = $(this).data('sportId');
+    
+    if (!confirm('Are you sure you want to remove this sport from the facility?')) {
+        return;
+    }
+    
+    fetch(`/facilities/admin/facility/${facilityId}/sports/${sportId}/remove/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Sport removed successfully', 'success');
+            $(this).closest('.list-group-item').fadeOut(300, function() {
+                $(this).remove();
+            });
+        } else {
+            showToast(data.message || 'Error removing sport', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Error removing sport', 'error');
+    });
+});
+</script>
 {% endblock %}

@@ -121,6 +121,20 @@ document.querySelectorAll('.edit-sport').forEach(button => {
             
             // Update form fields
             form.querySelector('[name="name"]').value = data.name;
+            form.querySelector('[name="description"]').value = data.description || '';
+            form.querySelector('[name="default_price"]').value = data.default_price || '';
+            form.querySelector('[name="default_max_players"]').value = data.default_max_players || '';
+            form.querySelector('[name="is_active"]').checked = Boolean(data.is_active);
+            
+            // If there's a sport icon field
+            if (form.querySelector('[name="sport_icon"]')) {
+                // Don't set value for file input as it's not possible for security reasons
+                // But you can show the current filename if needed
+                const iconNameElement = form.querySelector('.current-icon-name');
+                if (iconNameElement && data.sport_icon) {
+                    iconNameElement.textContent = data.sport_icon.split('/').pop();
+                }
+            }
             
             // Update modal title
             const modalTitle = form.closest('.modal').querySelector('.modal-title');

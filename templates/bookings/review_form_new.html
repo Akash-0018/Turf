@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Review Booking - {{ booking.facility_sport.facility.name }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient-primary text-white d-flex align-items-center">
+                    <i class="fas fa-star me-2"></i>
+                    <h5 class="mb-0">Rate Your Experience</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Booking Summary -->
+                    <div class="booking-summary mb-4">
+                        <h6 class="text-muted mb-3">Booking Details</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="detail-card">
+                                    <i class="fas fa-map-marker-alt text-primary"></i>
+                                    <div>
+                                        <label>Facility</label>
+                                        <p>{{ booking.facility_sport.facility.name }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-card">
+                                    <i class="fas fa-futbol text-primary"></i>
+                                    <div>
+                                        <label>Sport</label>
+                                        <p>{{ booking.facility_sport.sport.name }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-card">
+                                    <i class="fas fa-calendar-alt text-primary"></i>
+                                    <div>
+                                        <label>Date</label>
+                                        <p>{{ booking.date|date:"l, F j, Y" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-card">
+                                    <i class="fas fa-clock text-primary"></i>
+                                    <div>
+                                        <label>Time</label>
+                                        <p>{{ booking.time_slot.start_time|time:"g:i A" }} - {{ booking.time_slot.end_time|time:"g:i A" }} IST</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Review Form -->
+                    <form id="reviewForm" method="post" class="review-form">
+                        {% csrf_token %}
+                        
+                        <!-- Rating -->
+                        <div class="mb-4">
+                            <label class="form-label">Your Rating</label>
+                            <div class="rating-input">
+                                <div class="stars">
+                                    {% for i in "12345"|make_list %}
+                                    <input type="radio" name="rating" id="star{{ i }}" value="{{ i }}" required>
+                                    <label for="star{{ i }}" title="{{ i }} stars">
+                                        <i class="fas fa-star"></i>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                                <div class="rating-text mt-2">
+                                    <small class="text-muted">Click to rate</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Review Text -->
+                        <div class="mb-4">
+                            <label for="review_text" class="form-label">Your Review</label>
+                            <textarea name="review_text" id="review_text" rows="4" 
+                                    class="form-control" 
+                                    placeholder="Share your experience..." 
+                                    required></textarea>
+                            <div class="form-text">
+                                Your review helps others make better decisions. Be specific and honest.
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'bookings' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Review
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(45deg, #2196F3, #1976D2);
+}
+
+.detail-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    height: 100%;
+}
+
+.detail-card i {
+    font-size: 1.25rem;
+    margin-top: 0.25rem;
+}
+
+.detail-card label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.detail-card p {
+    margin: 0;
+    font-weight: 500;
+}
+
+.rating-input {
+    text-align: center;
+}
+
+.stars {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    gap: 0.5rem;
+}
+
+.stars input {
+    display: none;
+}
+
+.stars label {
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: #e9ecef;
+    transition: all 0.2s ease;
+}
+
+.stars label:hover,
+.stars label:hover ~ label,
+.stars input:checked ~ label {
+    color: #ffc107;
+}
+
+.btn {
+    padding: 0.5rem 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('reviewForm');
+    const ratingInputs = document.querySelectorAll('input[name="rating"]');
+    const ratingText = document.querySelector('.rating-text small');
+    
+    // Rating text mapping
+    const ratingLabels = {
+        1: 'Poor',
+        2: 'Fair',
+        3: 'Good',
+        4: 'Very Good',
+        5: 'Excellent'
+    };
+
+    // Update rating text on selection
+    ratingInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            ratingText.textContent = ratingLabels[this.value];
+            ratingText.style.color = '#000';
+        });
+    });
+
+    // Handle form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+
+        fetch(window.location.href, {
+            method: 'POST',
+            body: new FormData(this),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showNotification('success', 'Review submitted successfully!');
+                setTimeout(() => {
+                    window.location.href = data.redirect_url;
+                }, 1500);
+            } else {
+                throw new Error(data.message || 'Failed to submit review');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('error', error.message || 'Failed to submit review. Please try again.');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit Review';
+        });
+    });
+
+    // Helper function to show notifications
+    function showNotification(type, message) {
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+        alert.style.zIndex = 1050;
+        alert.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alert);
+        setTimeout(() => alert.remove(), 5000);
+    }
+});
+</script>
+{% endblock %}

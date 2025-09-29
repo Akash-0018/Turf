@@ -22,6 +22,7 @@ urlpatterns = [
     path('bookings/', include('bookings.urls')),  # Use main bookings URLs
     path('payments/', include('payments.urls')),
     path('reviews/', include('reviews.urls')),
+    path('teams/', include('sport_teams.urls')),
     
     # Static pages
     path('about/', views.about_us, name='about'),

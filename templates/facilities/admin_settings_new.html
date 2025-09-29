@@ -1,0 +1,663 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Settings - {{ site_settings.site_name|default:'TurfZone' }}{% endblock %}
+
+{% block extra_css %}
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<!-- Custom CSS -->
+<link href="{% static 'css/admin-settings.css' %}" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="settings-container">
+        <!-- Settings Navigation -->
+        <div class="settings-nav">
+            <div class="nav flex-column nav-pills" id="settings-tab" role="tablist">
+                <button class="nav-link active" id="general-tab" data-bs-toggle="pill" data-bs-target="#general" type="button">
+                    <i class="fas fa-cog me-2"></i>General Settings
+                </button>
+                <button class="nav-link" id="facility-tab" data-bs-toggle="pill" data-bs-target="#facility" type="button">
+                    <i class="fas fa-building me-2"></i>Facility Management
+                </button>
+                <button class="nav-link" id="sports-tab" data-bs-toggle="pill" data-bs-target="#sports" type="button">
+                    <i class="fas fa-football-ball me-2"></i>Sports & Activities
+                </button>
+                <button class="nav-link" id="offers-tab" data-bs-toggle="pill" data-bs-target="#offers" type="button">
+                    <i class="fas fa-tags me-2"></i>Offers & Discounts
+                </button>
+                <button class="nav-link" id="reviews-tab" data-bs-toggle="pill" data-bs-target="#reviews" type="button">
+                    <i class="fas fa-star me-2"></i>Reviews & Ratings
+                </button>
+            </div>
+        </div>
+
+        <!-- Settings Content -->
+        <div class="settings-content">
+            <div class="tab-content" id="settings-tabContent">
+                <!-- General Settings -->
+                <div class="tab-pane fade show active" id="general" role="tabpanel">
+                    <div class="settings-header">
+                        <h3>General Settings</h3>
+                        <button type="button" class="btn btn-primary save-settings">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                    </div>
+
+                    <form id="generalSettingsForm" class="settings-form">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Site Name</label>
+                                    <input type="text" class="form-control" name="site_name" value="{{ settings.site_name }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Contact Email</label>
+                                    <input type="email" class="form-control" name="contact_email" value="{{ settings.contact_email }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label>About Us</label>
+                                    <textarea class="form-control" name="about_us" rows="4">{{ settings.about_us }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Booking Time Limit (minutes)</label>
+                                    <input type="number" class="form-control" name="booking_time_limit" value="{{ settings.booking_time_limit }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Cancellation Time Limit (hours)</label>
+                                    <input type="number" class="form-control" name="cancellation_time_limit" value="{{ settings.cancellation_time_limit }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Max Advance Booking Days</label>
+                                    <input type="number" class="form-control" name="max_advance_booking_days" value="{{ settings.max_advance_booking_days }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="maintenance_mode" {% if settings.maintenance_mode %}checked{% endif %}>
+                                    <label class="form-check-label">Maintenance Mode</label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Facility Management -->
+                <div class="tab-pane fade" id="facility" role="tabpanel">
+                    <div class="settings-header">
+                        <h3>Facility Management</h3>
+                        <button type="button" class="btn btn-primary" onclick="resetForm('facilityForm')" data-bs-toggle="modal" data-bs-target="#addFacilityModal">
+                            <i class="fas fa-plus me-2"></i>Add Facility
+                        </button>
+                    </div>
+
+                    <div class="facilities-grid">
+                        {% for facility in facilities %}
+                        <div class="facility-card">
+                            <div class="facility-image">
+                                {% if facility.images.exists %}
+                                <img src="{{ facility.images.first.image.url }}" alt="{{ facility.name }}">
+                                {% else %}
+                                <div class="no-image">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="facility-info">
+                                <h4>{{ facility.name }}</h4>
+                                <p>{{ facility.sports.count }} Sports Available</p>
+                                <div class="facility-actions">
+                                    <button class="btn btn-sm btn-info manage-sports" data-id="{{ facility.id }}" data-bs-toggle="modal" data-bs-target="#manageSportsModal">
+                                        <i class="fas fa-running"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-primary edit-facility" data-id="{{ facility.id }}" data-edit="facility">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" data-id="{{ facility.id }}" data-delete="facility">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="empty-state">
+                            <i class="fas fa-building"></i>
+                            <p>No facilities added yet</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Sports & Activities -->
+                <div class="tab-pane fade" id="sports" role="tabpanel">
+                    <div class="settings-header">
+                        <h3>Sports & Activities</h3>
+                        <button type="button" class="btn btn-primary" onclick="resetForm('sportForm')" data-bs-toggle="modal" data-bs-target="#addSportModal">
+                            <i class="fas fa-plus me-2"></i>Add Sport
+                        </button>
+                    </div>
+
+                    <div class="sports-grid">
+                        {% for sport in sports %}
+                        <div class="sport-card">
+                            <div class="sport-icon">
+                                {% if sport.icon %}
+                                <img src="{{ sport.icon.url }}" alt="{{ sport.name }}">
+                                {% else %}
+                                <i class="fas fa-running"></i>
+                                {% endif %}
+                            </div>
+                            <div class="sport-info">
+                                <h4>{{ sport.name }}</h4>
+                                <p>{{ sport.facilitysport_set.count }} Facilities</p>
+                                <div class="sport-actions">
+                                    <button class="btn btn-sm btn-primary edit-sport" data-id="{{ sport.id }}" data-edit="sport">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" data-id="{{ sport.id }}" data-delete="sport">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="empty-state">
+                            <i class="fas fa-running"></i>
+                            <p>No sports added yet</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Offers & Discounts -->
+                <div class="tab-pane fade" id="offers" role="tabpanel">
+                    <div class="settings-header">
+                        <h3>Offers & Discounts</h3>
+                        <button type="button" class="btn btn-primary" onclick="resetForm('offerForm')" data-bs-toggle="modal" data-bs-target="#addOfferModal">
+                            <i class="fas fa-plus me-2"></i>Add Offer
+                        </button>
+                    </div>
+
+                    <div class="offers-list">
+                        {% for offer in offers %}
+                        <div class="offer-card">
+                            <div class="offer-details">
+                                <h4>{{ offer.title }}</h4>
+                                <p>{{ offer.discount_percentage }}% OFF</p>
+                                <p class="text-muted">Valid till: {{ offer.end_date }}</p>
+                            </div>
+                            <div class="offer-status">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input toggle-offer" type="checkbox" 
+                                           data-id="{{ offer.id }}" {% if offer.is_active %}checked{% endif %}>
+                                </div>
+                            </div>
+                            <div class="offer-actions">
+                                <button class="btn btn-sm btn-primary edit-offer" data-id="{{ offer.id }}" data-edit="offer">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" data-id="{{ offer.id }}" data-delete="offer">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="empty-state">
+                            <i class="fas fa-tags"></i>
+                            <p>No offers available</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Reviews & Ratings -->
+                <div class="tab-pane fade" id="reviews" role="tabpanel">
+                    <div class="settings-header">
+                        <h3>Reviews & Ratings</h3>
+                    </div>
+
+                    <div class="reviews-list">
+                        {% for review in reviews %}
+                        <div class="review-card">
+                            <div class="review-header">
+                                <div class="user-info">
+                                    <div class="user-avatar">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div>
+                                        <h5>{{ review.user.get_full_name }}</h5>
+                                        <div class="rating">
+                                            {% for i in "12345"|make_list %}
+                                            <i class="fas fa-star {% if forloop.counter <= review.rating %}text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="review-actions">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input toggle-featured" type="checkbox" 
+                                               data-id="{{ review.id }}" {% if review.is_featured %}checked{% endif %}>
+                                        <label class="form-check-label">Featured</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="review-content">
+                                <p>{{ review.review_text }}</p>
+                                <div class="review-meta">
+                                    <span>{{ review.facility.name }}</span>
+                                    <span>{{ review.created_at|timesince }} ago</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="empty-state">
+                            <i class="fas fa-star"></i>
+                            <p>No reviews yet</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Add/Edit Facility Modal -->
+    <div class="modal fade" id="addFacilityModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Facility</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="facilityForm" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Facility Name*</label>
+                                    <input type="text" class="form-control" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Location*</label>
+                                    <input type="text" class="form-control" name="location" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label>Google Maps Link</label>
+                                    <input type="url" class="form-control" name="google_maps_link" placeholder="https://maps.google.com/...">
+                                    <small class="text-muted">Paste the full Google Maps link for the facility location</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label>Description*</label>
+                                    <textarea class="form-control" name="description" rows="3" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Opening Time*</label>
+                                    <input type="time" class="form-control" name="opening_time" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Closing Time*</label>
+                                    <input type="time" class="form-control" name="closing_time" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label>Rules</label>
+                                    <textarea class="form-control" name="rules" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label>Amenities</label>
+                                    <select class="form-control select2" name="amenities[]" multiple>
+                                        <option value="Floodlights">Floodlights</option>
+                                        <option value="Parking">Parking</option>
+                                        <option value="Changing Rooms">Changing Rooms</option>
+                                        <option value="Washrooms">Washrooms</option>
+                                        <option value="Water">Drinking Water</option>
+                                        <option value="First Aid">First Aid</option>
+                                        <option value="Equipment Rental">Equipment Rental</option>
+                                        <option value="Refreshments">Refreshments</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label>Facility Images</label>
+                                    <input type="file" class="form-control" name="images[]" accept="image/*" multiple>
+                                    <small class="text-muted">First image will be set as primary</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="is_active" checked>
+                                    <label class="form-check-label">Active</label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" form="facilityForm" class="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Sport Modal -->
+    <div class="modal fade" id="addSportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Sport</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="sportForm" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label>Sport Name*</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label>Description</label>
+                            <textarea class="form-control" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label>Default Price per Hour*</label>
+                            <input type="number" class="form-control" name="default_price" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label>Default Max Players*</label>
+                            <input type="number" class="form-control" name="default_max_players" min="1" required>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label>Sport Icon</label>
+                            <input type="file" class="form-control" name="icon" accept="image/*">
+                            <small class="text-muted">Upload an icon for this sport</small>
+                        </div>
+                        <div class="form-check mt-3">
+                            <input type="checkbox" class="form-check-input" name="is_active" checked>
+                            <label class="form-check-label">Active</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" form="sportForm" class="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Facility Sports Management Modal -->
+    <div class="modal fade" id="manageSportsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Manage Facility Sports</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="facilitySportsForm">
+                        {% csrf_token %}
+                        <div class="facility-sports-list mb-4">
+                            <h6>Current Sports</h6>
+                            <div id="currentSportsList" class="list-group">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <div class="add-sport-section">
+                            <h6>Add New Sport</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Sport</label>
+                                        <select class="form-control" name="sport" id="sportSelect">
+                                            <!-- Will be populated by JavaScript -->
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Price per Slot</label>
+                                        <input type="number" class="form-control" name="price_per_slot" min="0" step="0.01" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Max Players</label>
+                                        <input type="number" class="form-control" name="max_players" min="1" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label>Available</label>
+                                        <div class="form-check mt-2">
+                                            <input type="checkbox" class="form-check-input" name="is_available" checked>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary save-facility-sports">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+jQuery(document).ready(function($) {
+    // Initialize Select2
+    if ($.fn.select2) {
+        $('.select2').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Select items',
+            allowClear: true
+        });
+
+        $('#sportSelect').select2({
+            theme: 'bootstrap-5',
+            dropdownParent: $('#manageSportsModal'),
+            placeholder: 'Select a sport',
+            allowClear: true,
+            width: '100%'
+        });
+    }
+
+    // Handle facility sports management
+    $('.manage-sports').on('click', function() {
+        const facilityId = $(this).data('id');
+        loadFacilitySports(facilityId);
+    });
+
+    // Save facility sports
+    $('.save-facility-sports').on('click', function() {
+        const form = document.getElementById('facilitySportsForm');
+        const facilityId = form.dataset.facilityId;
+        const formData = new FormData(form);
+        
+        // Validate form
+        const sport = formData.get('sport');
+        const pricePerSlot = formData.get('price_per_slot');
+        const maxPlayers = formData.get('max_players');
+        
+        if (!sport) {
+            showToast('Please select a sport', 'error');
+            return;
+        }
+        
+        if (!pricePerSlot || parseFloat(pricePerSlot) <= 0) {
+            showToast('Please enter a valid price per slot', 'error');
+            return;
+        }
+        
+        if (!maxPlayers || parseInt(maxPlayers) < 1) {
+            showToast('Please enter a valid number of maximum players', 'error');
+            return;
+        }
+        
+        fetch(`/facilities/admin/facility/${facilityId}/sports/`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message || 'Sports updated successfully', 'success');
+                $('#manageSportsModal').modal('hide');
+                // Reload the page to refresh the facility cards
+                location.reload();
+            } else {
+                showToast(data.message || 'Error updating sports', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error updating sports', 'error');
+        });
+    });
+});
+
+function loadFacilitySports(facilityId) {
+    fetch(`/facilities/admin/facility/${facilityId}/sports/`)
+        .then(response => response.json())
+        .then(data => {
+            const currentSportsList = document.getElementById('currentSportsList');
+            const sportSelect = document.getElementById('sportSelect');
+            const form = document.getElementById('facilitySportsForm');
+            
+            // Set facility ID for form submission
+            form.dataset.facilityId = facilityId;
+            
+            // Update facility name in modal title
+            document.querySelector('#manageSportsModal .modal-title').textContent = 
+                `Manage Sports for ${data.facility_name}`;
+            
+            // Clear and populate current sports list
+            currentSportsList.innerHTML = '';
+            data.sports.forEach(sport => {
+                currentSportsList.innerHTML += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">${sport.name}</h6>
+                            <small>₹${sport.price_per_slot}/slot - Max ${sport.max_players} players</small>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input sport-availability" type="checkbox" 
+                                   ${sport.is_available ? 'checked' : ''} 
+                                   data-sport-id="${sport.id}">
+                            <label class="form-check-label">Available</label>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Clear and populate available sports dropdown
+            sportSelect.innerHTML = '<option value="">Select a sport</option>';
+            data.available_sports.forEach(sport => {
+                sportSelect.innerHTML += `
+                    <option value="${sport.id}">${sport.name}</option>
+                `;
+            });
+
+            // Reinitialize Select2
+            if (jQuery.fn.select2) {
+                jQuery('#sportSelect').select2('destroy');
+                jQuery('#sportSelect').select2({
+                    theme: 'bootstrap-5',
+                    dropdownParent: jQuery('#manageSportsModal'),
+                    placeholder: 'Select a sport',
+                    allowClear: true,
+                    width: '100%'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error loading facility sports', 'error');
+        });
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast position-fixed bottom-0 end-0 m-4 text-white bg-${type === 'success' ? 'success' : 'danger'}`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `<div class="toast-body">${message}</div>`;
+    document.body.appendChild(toast);
+    new bootstrap.Toast(toast).show();
+    setTimeout(() => toast.remove(), 3000);
+}
+</script>
+
+<!-- Custom JS -->
+<script src="{% static 'js/admin-settings.js' %}"></script>
+{% endblock %}

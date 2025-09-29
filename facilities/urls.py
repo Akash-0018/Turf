@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from . import views
+from . import views, api
 
 router = DefaultRouter()
 router.register(r'api', views.FacilityViewSet, basename='facility-api')
@@ -8,6 +8,7 @@ router.register(r'api', views.FacilityViewSet, basename='facility-api')
 urlpatterns = [
     path('', views.FacilityListView.as_view(), name='facility-list'),
     path('<int:pk>/', views.FacilityDetailView.as_view(), name='facility-detail'),
+    path('get-slots/', api.get_available_slots, name='get-slots'),
     path('', include(router.urls)),
     
     # Admin Settings URLs
@@ -26,6 +27,10 @@ urlpatterns = [
     path('admin/sport/add/', views.add_sport, name='add-sport'),
     path('admin/sport/<int:sport_id>/edit/', views.edit_sport, name='edit-sport'),
     path('admin/sport/<int:sport_id>/delete/', views.delete_sport, name='delete-sport'),
+    path('admin/facility/<int:facility_id>/sports/', views.manage_facility_sports, name='manage-facility-sports'),
+    path('admin/facility/<int:facility_id>/sports/<int:sport_id>/toggle/', views.toggle_facility_sport_availability, name='toggle-facility-sport'),
+    path('admin/facility/<int:facility_id>/sports/<int:sport_id>/remove/', views.remove_facility_sport, name='remove-facility-sport'),
+    path('admin/facility/<int:facility_id>/sports/', views.manage_facility_sports, name='manage-facility-sports'),
     
     # Offers Management
     path('admin/offer/add/', views.add_offer, name='add-offer'),

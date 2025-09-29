@@ -5,97 +5,232 @@
 
 {% block content %}
 <div class="container my-4">
-    <div class="row">
-        <div class="col-12">
-            <h2 class="mb-4">My Bookings</h2>
-            
-            <div class="text-end mb-3">
-                <a href="{% url 'booking-create' %}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> New Booking
-                </a>
-            </div>
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="display-6 mb-0">My Bookings</h2>
+        </div>
+        <div class="col text-end">
+            <a href="{% url 'booking-create' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i> New Booking
+            </a>
+        </div>
+    </div>
 
-            {% if bookings %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Facility</th>
-                                <th>Date</th>
-                                <th>Time</th>
-                                <th>Status</th>
-                                <th>Total Price</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for booking in bookings %}
-                            <tr>
-                                <td>{{ booking.facility.name }}</td>
-                                <td>{{ booking.date }}</td>
-                                <td>{{ booking.start_time }} - {{ booking.end_time }}</td>
-                                <td>
-                                    <span class="badge {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
-                                        {{ booking.status|title }}
-                                    </span>
-                                </td>
-                                <td>${{ booking.total_price }}</td>
-                                <td>
-                                    <a href="{% url 'booking-detail' booking.id %}" class="btn btn-sm btn-info">
-                                        <i class="fas fa-eye"></i> View
-                                    </a>
-                                    {% if booking.status == 'confirmed' %}
-                                    <button class="btn btn-sm btn-danger cancel-booking" data-booking-id="{{ booking.id }}">
-                                        <i class="fas fa-times"></i> Cancel
-                                    </button>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+    {% if bookings %}
+        <div class="booking-cards">
+            {% for booking in bookings %}
+            <div class="card booking-card mb-3">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <h5 class="card-title mb-1">{{ booking.facility_sport.facility.name }}</h5>
+                            <p class="text-muted mb-0 small">{{ booking.facility_sport.sport.name }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="booking-info">
+                                <i class="far fa-calendar-alt text-primary"></i>
+                                <span>{{ booking.date|date:"D, M d, Y" }}</span>
+                            </div>
+                            <div class="booking-info">
+                                <i class="far fa-clock text-primary"></i>
+                                <span>{{ booking.time_slot.start_time|time:"g:i A" }} - {{ booking.time_slot.end_time|time:"g:i A" }} IST</span>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <span class="badge rounded-pill 
+                                {% if booking.status == 'confirmed' %}bg-success
+                                {% elif booking.status == 'pending' %}bg-warning
+                                {% elif booking.status == 'cancelled' %}bg-danger
+                                {% elif booking.status == 'completed' %}bg-info
+                                {% else %}bg-secondary{% endif %}">
+                                {{ booking.status|title }}
+                            </span>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="price-info">
+                                <span class="price-label">Price:</span>
+                                <span class="price-amount">₹{{ booking.total_price }}</span>
+                                {% if booking.discount_amount > 0 %}
+                                <span class="price-discount text-success">
+                                    (Saved ₹{{ booking.discount_amount }})
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <div class="btn-group">
+                                <a href="{% url 'booking-detail' booking.id %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye"></i> Details
+                                </a>
+                                {% if booking.status == 'confirmed' %}
+                                <button class="btn btn-outline-danger btn-sm cancel-booking" 
+                                        data-booking-id="{{ booking.id }}"
+                                        data-bs-toggle="tooltip"
+                                        title="Cancel Booking">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            {% else %}
-                <div class="alert alert-info">
-                    <p>You don't have any bookings yet.</p>
-                    <a href="{% url 'facility-list' %}" class="btn btn-primary mt-2">Browse Facilities</a>
-                </div>
-            {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <img src="{% static 'images/no-bookings.svg' %}" alt="No bookings" class="mb-4" style="max-width: 200px;">
+            <h3>No Bookings Yet</h3>
+            <p class="text-muted">Start by booking a turf for your next game!</p>
+            <a href="{% url 'booking-create' %}" class="btn btn-primary mt-2">
+                <i class="fas fa-search me-1"></i> Browse Facilities
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Booking</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel this booking?</p>
+                <p class="text-muted small">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Booking</button>
+                <button type="button" class="btn btn-danger" id="confirmCancel">Yes, Cancel Booking</button>
+            </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.booking-card {
+    transition: transform 0.2s ease;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.booking-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.booking-info {
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.booking-info i {
+    width: 20px;
+    margin-right: 8px;
+}
+
+.price-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.price-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.price-amount {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.price-discount {
+    font-size: 0.8rem;
+}
+
+.badge {
+    padding: 0.5em 1em;
+}
+
+.btn-group .btn {
+    padding: 0.375rem 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .booking-card .row > div {
+        margin-bottom: 1rem;
+    }
+    .booking-card .row > div:last-child {
+        margin-bottom: 0;
+    }
+    .col-md-2.text-end {
+        text-align: left !important;
+    }
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const cancelButtons = document.querySelectorAll('.cancel-booking');
-    cancelButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            if (confirm('Are you sure you want to cancel this booking?')) {
-                const bookingId = this.dataset.bookingId;
-                fetch(`/bookings/${bookingId}/cancel/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'booking cancelled') {
-                        window.location.reload();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Failed to cancel booking. Please try again.');
-                });
-            }
+    let bookingToCancel = null;
+    const cancelModal = new bootstrap.Modal(document.getElementById('cancelModal'));
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Initialize cancel buttons
+    document.querySelectorAll('.cancel-booking').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            bookingToCancel = this.dataset.bookingId;
+            cancelModal.show();
         });
     });
 
-    // Function to get CSRF token from cookies
+    // Handle cancel confirmation
+    document.getElementById('confirmCancel').addEventListener('click', function() {
+        if (bookingToCancel) {
+            // Show loading state
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Cancelling...';
+            this.disabled = true;
+
+            fetch(`/bookings/${bookingToCancel}/cancel/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'booking cancelled') {
+                    // Show success message and reload
+                    showNotification('success', 'Booking cancelled successfully');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    throw new Error(data.message || 'Failed to cancel booking');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('error', error.message || 'Failed to cancel booking. Please try again.');
+                // Reset button state
+                this.innerHTML = 'Yes, Cancel Booking';
+                this.disabled = false;
+            })
+            .finally(() => {
+                cancelModal.hide();
+            });
+        }
+    });
+
+    // Helper function to get CSRF token
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -109,6 +244,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         return cookieValue;
+    }
+
+    // Helper function to show notifications
+    function showNotification(type, message) {
+        const container = document.querySelector('.container');
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+        alert.style.zIndex = 1050;
+        alert.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        container.appendChild(alert);
+        setTimeout(() => alert.remove(), 5000);
     }
 });
 </script>

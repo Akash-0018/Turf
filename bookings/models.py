@@ -2,6 +2,8 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from facilities.models import Facility, FacilitySport, TimeSlot, Offer
+from datetime import datetime
+import pytz
 
 class Booking(models.Model):
     STATUS_CHOICES = [
@@ -40,16 +42,16 @@ class Booking(models.Model):
         if not self.id and (not self.facility_sport or not self.time_slot):
             raise ValueError("Both facility_sport and time_slot are required for new bookings")
 
-        # Set payment deadline if not set (15 minutes from creation)
-        if not self.payment_deadline and self.status == 'initiated':
-            self.payment_deadline = timezone.now() + timezone.timedelta(minutes=15)
-            
+        # Set payment deadline for new bookings (30 minutes from creation)
+        if not self.id and not self.payment_deadline:
+            self.payment_deadline = timezone.now() + timezone.timedelta(minutes=30)
+
         # Calculate prices if this is a new booking
         if not self.id and not self.base_price:
             self.base_price = self.facility_sport.price_per_slot
             self.total_price = self.base_price
             
-            # Apply any active offers
+            # Apply active offers only to eligible slots
             active_offer = Offer.objects.filter(
                 facility=self.facility_sport.facility,
                 start_date__lte=self.date,
@@ -58,9 +60,13 @@ class Booking(models.Model):
             ).first()
             
             if active_offer:
-                self.discount_amount = self.base_price * (active_offer.discount_percentage / 100)
-                self.total_price = self.base_price - self.discount_amount
-                self.discount_code = f"OFFER_{active_offer.id}"
+                # Early bird offer logic - only for slots between 6 AM and 10 AM IST
+                slot_time = timezone.localtime(timezone.make_aware(datetime.combine(self.date, self.time_slot.start_time)))
+                slot_hour = slot_time.hour
+                if 6 <= slot_hour < 10:  # Early bird hours (6 AM to 10 AM IST)
+                    self.discount_amount = self.base_price * (active_offer.discount_percentage / 100)
+                    self.total_price = self.base_price - self.discount_amount
+                    self.discount_code = f"EARLY_BIRD_{active_offer.id}"
         
         super().save(*args, **kwargs)
 

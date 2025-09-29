@@ -5,6 +5,7 @@ from facilities.models import Facility, FacilitySport, TimeSlot
 from facilities.models import SportType, Offer
 from bookings.models import Booking
 from reviews.models import Review
+import pytz
 
 def home(request):
     # Get the featured facility with all related data
@@ -14,9 +15,56 @@ def home(request):
         'offers'
     ).first()
     
-    # Get available dates (next 3 days) for preview
-    today = timezone.now().date()
+    # Use IST timezone for all slot logic
+    ist = pytz.timezone('Asia/Kolkata')
+    now_ist = timezone.now().astimezone(ist)
+    today = now_ist.date()
     dates = [today + timezone.timedelta(days=x) for x in range(3)]
+
+    # Get simulated weather data for Coimbatore based on seasonal patterns
+    current_hour = now_ist.hour
+    current_month = now_ist.month
+    
+    # Coimbatore's seasonal temperature ranges (°C)
+    if current_month in [12, 1, 2]:  # Winter
+        temp_range = (18, 30)
+        humidity_range = (40, 65)
+    elif current_month in [3, 4, 5]:  # Summer
+        temp_range = (24, 35)
+        humidity_range = (35, 55)
+    elif current_month in [6, 7, 8, 9]:  # Monsoon
+        temp_range = (22, 32)
+        humidity_range = (70, 90)
+    else:  # Post-monsoon
+        temp_range = (20, 31)
+        humidity_range = (60, 75)
+
+    # Adjust temperature based on time of day
+    if 6 <= current_hour < 12:  # Morning
+        temperature = temp_range[0] + (temp_range[1] - temp_range[0]) * 0.4
+    elif 12 <= current_hour < 16:  # Afternoon
+        temperature = temp_range[1]
+    elif 16 <= current_hour < 20:  # Evening
+        temperature = temp_range[0] + (temp_range[1] - temp_range[0]) * 0.6
+    else:  # Night
+        temperature = temp_range[0]
+
+    # Determine weather conditions based on month and time
+    if current_month in [6, 7, 8, 9]:  # Monsoon months
+        conditions = 'Cloudy' if 6 <= current_hour < 18 else 'Partly Cloudy'
+        humidity = humidity_range[1]
+    else:
+        if 6 <= current_hour < 18:
+            conditions = 'Sunny' if current_hour > 10 else 'Clear'
+        else:
+            conditions = 'Clear'
+        humidity = humidity_range[0] + (humidity_range[1] - humidity_range[0]) * 0.5
+
+    weather = {
+        'temperature': int(temperature),
+        'conditions': conditions,
+        'humidity': int(humidity)
+    }
     
     # Get slots for each date
     all_slots = TimeSlot.objects.all()
@@ -32,8 +80,7 @@ def home(request):
         booked_slot_ids = set(booked_slots)
         
         # Get current time for checking past slots
-        current_time = timezone.now().time()
-        
+        current_time = now_ist.time() if date == today else None
         # Filter available slots
         available_slots = []
         for slot in all_slots:
@@ -79,12 +126,7 @@ def home(request):
     # Get time slots for today
     slots = TimeSlot.objects.all().order_by('start_time')
     
-    # Mock weather data (replace with actual API call if needed)
-    weather = {
-        'temperature': 28,
-        'conditions': 'Sunny',
-        'humidity': 65,
-    }
+    # Weather data is already set from API call above
     
     # Mock activities (replace with actual data)
     activities = [

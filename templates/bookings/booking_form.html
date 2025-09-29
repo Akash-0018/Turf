@@ -5,145 +5,185 @@
 
 {% block content %}
 <div class="container my-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="card-title mb-0">Book a Slot</h3>
+    <div class="booking-stepper mb-4">
+        <div class="stepper-progress">
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+            </div>
+            <div class="steps">
+                <div class="step active" data-step="1">
+                    <div class="step-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <span>Select Facility</span>
                 </div>
-                <div class="card-body">
-                    <form method="post" id="booking-form">
-                        {% csrf_token %}
-                        
-                        <!-- Step 1: Select Facility and Sport -->
-                        <div class="mb-4">
-                            <label for="facility_sport" class="form-label">Select Facility & Sport</label>
-                            <select name="facility_sport" id="facility_sport" class="form-select" required>
-                                <option value="">Choose a facility and sport...</option>
-                                {% for fs in form.fields.facility_sport.queryset %}
-                                <option value="{{ fs.id }}" 
-                                        data-price="{{ fs.price_per_slot }}"
-                                        data-facility-id="{{ fs.facility.id }}">
-                                    {{ fs.facility.name }} - {{ fs.sport.name }} (₹{{ fs.price_per_slot }})
-                                </option>
-                                {% endfor %}
-                            </select>
-                            <div class="form-text">Choose the facility and sport you want to book</div>
-                        </div>
-
-                        <!-- Step 2: Select Date -->
-                        <div class="mb-4">
-                            <label for="booking_date" class="form-label">Select Date</label>
-                            <input type="date" name="date" id="booking_date" class="form-control" required>
-                            <div class="form-text">Choose your preferred date</div>
-                        </div>
-
-                        <!-- Step 3: Available Time Slots -->
-                        <div class="mb-4">
-                            <label for="time_slot" class="form-label">Select Time Slot</label>
-                            <select name="time_slot" id="time_slot" class="form-select" required disabled>
-                                <option value="">Select date and facility first...</option>
-                            </select>
-                            <div class="form-text">Choose an available time slot</div>
-                        </div>
-
-                        <!-- Booking Summary -->
-                        <div id="booking-summary" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="bookingSummaryTitle">
-                            <div class="modal-dialog modal-dialog-centered" role="document">
-                                <div class="modal-content rounded-4 shadow-lg">
-                                    <div class="modal-body p-4" aria-live="polite">
-                                        <!-- Header -->
-                                        <div class="booking-header bg-gradient p-4 rounded-4 mb-4">
-                                            <h5 id="bookingSummaryTitle" class="modal-title text-white d-flex align-items-center mb-0">
-                                                <i class="fas fa-receipt me-2" aria-hidden="true"></i>
-                                                <span>Booking Summary</span>
-                                            </h5>
-                                        </div>
-
-                                        <!-- Booking Details -->
-                                        <div class="booking-details">
-                                            <!-- Facility & Sport -->
-                                            <div class="detail-item mb-4">
-                                                <div class="icon-box bg-light rounded-3">
-                                                    <i class="fas fa-map-marker-alt text-primary"></i>
-                                                </div>
-                                                <div class="detail-content">
-                                                    <label>Facility & Sport</label>
-                                                    <div id="summary-facility-sport" class="detail-value"></div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Date -->
-                                            <div class="detail-item mb-4">
-                                                <div class="icon-box bg-light rounded-3">
-                                                    <i class="fas fa-calendar text-primary"></i>
-                                                </div>
-                                                <div class="detail-content">
-                                                    <label>Date</label>
-                                                    <div id="summary-date" class="detail-value"></div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Time -->
-                                            <div class="detail-item mb-4">
-                                                <div class="icon-box bg-light rounded-3">
-                                                    <i class="fas fa-clock text-primary"></i>
-                                                </div>
-                                                <div class="detail-content">
-                                                    <label>Time</label>
-                                                    <div id="summary-time" class="detail-value"></div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Pricing -->
-                                            <div class="pricing-section pt-3">
-                                                <div class="price-row">
-                                                    <span>Base Price</span>
-                                                    <span class="amount">₹<span id="summary-base-price"></span></span>
-                                                </div>
-                                                <div class="price-row final-price">
-                                                    <span>Final Price</span>
-                                                    <span class="amount text-primary">₹<span id="summary-final-price"></span></span>
-                                                </div>
-                                            </div>
-
-                                            <!-- Actions -->
-                                            <div class="actions mt-4 d-flex gap-3">
-                                                <button type="button" class="btn btn-light flex-grow-1" data-bs-dismiss="modal" aria-label="Cancel booking">
-                                                    <i class="fas fa-times me-2" aria-hidden="true"></i>Cancel
-                                                </button>
-                                                <button type="button" class="btn btn-primary flex-grow-1" id="confirm-booking" aria-label="Confirm booking">
-                                                    <i class="fas fa-check me-2" aria-hidden="true"></i>Confirm Booking
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="text-end">
-                            <a href="{% url 'bookings' %}" class="btn btn-secondary"><i class="fas fa-times me-2"></i>Cancel</a>
-                            <button type="button" class="btn btn-primary" id="show-summary">
-                                <i class="fas fa-check me-2"></i>Continue to Book
-                            </button>
-                        </div>
-                    </form>
+                <div class="step" data-step="2">
+                    <div class="step-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <span>Choose Date</span>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <span>Pick Time</span>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Loading Spinner Modal -->
-<div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-body text-center py-4">
-                <div class="spinner-border text-primary mb-2" role="status">
-                    <span class="visually-hidden">Loading...</span>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="booking-steps">
+                <!-- Step 1: Select Facility -->
+                <div class="booking-step active" id="step1">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">
+                                <span class="step-number">1</span>
+                                Select Facility & Sport
+                            </h5>
+                            <div class="facility-grid">
+                                {% for fs in form.fields.facility_sport.queryset %}
+                                <div class="facility-card" 
+                                     data-id="{{ fs.id }}"
+                                     data-facility-id="{{ fs.facility.id }}"
+                                     data-price="{{ fs.price_per_slot }}"
+                                     data-name="{{ fs.facility.name }}"
+                                     data-sport="{{ fs.sport.name }}">
+                                    <div class="facility-image">
+                                        {% if fs.facility.images.exists %}
+                                            <img src="{{ fs.facility.images.first.image.url }}" alt="{{ fs.facility.name }}">
+                                        {% else %}
+                                            <img src="{% static 'images/default-facility.jpg' %}" alt="{{ fs.facility.name }}">
+                                        {% endif %}
+                                        <div class="facility-sport-badge">{{ fs.sport.name }}</div>
+                                    </div>
+                                    <div class="facility-info">
+                                        <h6 class="facility-name">{{ fs.facility.name }}</h6>
+                                        <div class="facility-price">₹{{ fs.price_per_slot }} per slot</div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <p class="mb-0">Loading available slots...</p>
+
+                <!-- Step 2: Select Date -->
+                <div class="booking-step" id="step2">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">
+                                <span class="step-number">2</span>
+                                Select Date
+                            </h5>
+                            <div class="date-picker-wrapper">
+                                <div class="date-grid" id="dateGrid">
+                                    <!-- Dates will be populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Select Time Slot -->
+                <div class="booking-step" id="step3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">
+                                <span class="step-number">3</span>
+                                Select Time Slot
+                            </h5>
+                            <div class="time-slots-wrapper">
+                                <div class="early-bird-notice" style="display: none">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-sun me-2"></i>
+                                        Early Bird Offer: Get special discounts on morning slots (6 AM - 10 AM IST)
+                                    </div>
+                                </div>
+                                <div class="time-slots-grid" id="timeSlotsGrid">
+                                    <!-- Time slots will be populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Summary Sidebar -->
+        <div class="col-md-4">
+            <div class="booking-summary card shadow-sm sticky-top">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Booking Summary</h5>
+                    <div class="summary-content">
+                        <!-- Facility Details -->
+                        <div class="summary-item facility-details" style="display: none">
+                            <i class="fas fa-map-marker-alt text-primary"></i>
+                            <div>
+                                <label>Facility & Sport</label>
+                                <p id="summaryFacility"></p>
+                            </div>
+                        </div>
+
+                        <!-- Date Details -->
+                        <div class="summary-item date-details" style="display: none">
+                            <i class="fas fa-calendar-alt text-primary"></i>
+                            <div>
+                                <label>Date</label>
+                                <p id="summaryDate"></p>
+                            </div>
+                        </div>
+
+                        <!-- Time Details -->
+                        <div class="summary-item time-details" style="display: none">
+                            <i class="fas fa-clock text-primary"></i>
+                            <div>
+                                <label>Time</label>
+                                <p id="summaryTime"></p>
+                            </div>
+                        </div>
+
+                        <!-- Price Details -->
+                        <div class="price-details" style="display: none">
+                            <div class="price-row">
+                                <span>Base Price</span>
+                                <span class="amount">₹<span id="summaryBasePrice">0</span></span>
+                            </div>
+                            <div class="price-row discount-row" style="display: none">
+                                <span>Early Bird Discount</span>
+                                <span class="amount text-success">-₹<span id="summaryDiscount">0</span></span>
+                            </div>
+                            <div class="price-row total-row">
+                                <span>Final Price</span>
+                                <span class="amount">₹<span id="summaryTotalPrice">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden Form -->
+                    <form id="bookingForm" method="post" style="display: none;">
+                        {% csrf_token %}
+                        <input type="hidden" name="facility_sport" id="facilityInput">
+                        <input type="hidden" name="date" id="dateInput">
+                        <input type="hidden" name="time_slot" id="timeInput">
+                    </form>
+
+                    <!-- Action Buttons -->
+                    <div class="summary-actions mt-4">
+                        <button type="button" class="btn btn-outline-secondary btn-prev" style="display: none">
+                            <i class="fas fa-arrow-left me-2"></i>Previous
+                        </button>
+                        <button type="button" class="btn btn-primary btn-next" disabled>
+                            Continue<i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                        <button type="submit" form="bookingForm" class="btn btn-success btn-confirm" style="display: none">
+                            <i class="fas fa-check me-2"></i>Confirm Booking
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -152,91 +192,297 @@
 
 {% block extra_css %}
 <style>
-.bg-gradient {
-    background: linear-gradient(45deg, #2196F3, #FF4B94);
+/* Stepper Styles */
+.booking-stepper {
+    margin-bottom: 2rem;
 }
 
-.modal-content {
-    border: none;
+.stepper-progress {
+    position: relative;
+    padding: 0 1rem;
 }
 
-.booking-header {
-    margin: -1.5rem -1.5rem 2rem -1.5rem;
+.progress {
+    height: 3px;
+    background-color: #e9ecef;
+    position: relative;
+    margin: 2rem 0;
 }
 
-.detail-item {
+.progress-bar {
+    background-color: #2196f3;
+    transition: width 0.3s ease;
+}
+
+.steps {
     display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    background: #F8F9FA;
-    padding: 1rem;
-    border-radius: 12px;
+    justify-content: space-between;
+    position: absolute;
+    width: 100%;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
-.icon-box {
+.step {
+    text-align: center;
+    position: relative;
+    color: #6c757d;
+}
+
+.step-icon {
     width: 40px;
     height: 40px;
+    background: #fff;
+    border: 2px solid #e9ecef;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 0 auto 0.5rem;
+    transition: all 0.3s ease;
 }
 
-.detail-content {
-    flex: 1;
+.step.active .step-icon {
+    border-color: #2196f3;
+    color: #2196f3;
 }
 
-.detail-content label {
-    display: block;
+.step.completed .step-icon {
+    background: #2196f3;
+    border-color: #2196f3;
+    color: #fff;
+}
+
+/* Facility Grid Styles */
+.facility-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.facility-card {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.facility-card:hover {
+    border-color: #2196f3;
+    transform: translateY(-2px);
+}
+
+.facility-card.selected {
+    border-color: #2196f3;
+    box-shadow: 0 0 0 2px #2196f3;
+}
+
+.facility-image {
+    position: relative;
+    height: 150px;
+}
+
+.facility-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.facility-sport-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+}
+
+.facility-info {
+    padding: 1rem;
+}
+
+.facility-name {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.facility-price {
+    color: #2196f3;
+    font-weight: 500;
+    margin-top: 0.5rem;
+}
+
+/* Date Grid Styles */
+.date-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 1rem;
+}
+
+.date-card {
+    text-align: center;
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.date-card:hover {
+    border-color: #2196f3;
+}
+
+.date-card.selected {
+    border-color: #2196f3;
+    background-color: #e3f2fd;
+}
+
+.date-weekday {
+    font-size: 0.875rem;
     color: #6c757d;
-    font-size: 0.9rem;
+}
+
+.date-day {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0.5rem 0;
+}
+
+.date-month {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* Time Slots Grid Styles */
+.time-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.time-slot {
+    text-align: center;
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.time-slot:hover:not(.disabled) {
+    border-color: #2196f3;
+}
+
+.time-slot.selected {
+    border-color: #2196f3;
+    background-color: #e3f2fd;
+}
+
+.time-slot.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #f8f9fa;
+}
+
+.time-slot.early-bird {
+    border-color: #ffc107;
+}
+
+.time-slot .original-price {
+    color: #6c757d;
+    font-size: 0.85em;
+    text-decoration: line-through;
     margin-bottom: 0.25rem;
 }
 
-.detail-value {
-    font-weight: 500;
-    color: #212529;
+.time-slot .final-price {
+    color: #2196f3;
+    font-weight: 600;
 }
 
-.pricing-section {
-    border-top: 1px solid #dee2e6;
+.time-slot.early-bird .final-price {
+    color: #28a745;
+}
+
+.early-bird-badge {
+    background: #ffc107;
+    color: #000;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 20px;
+    margin-top: 0.5rem;
+    display: inline-block;
+}
+
+/* Summary Styles */
+.booking-summary {
+    position: sticky;
+    top: 1rem;
+}
+
+.summary-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+.summary-item i {
+    margin-top: 0.25rem;
+}
+
+.summary-item label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.summary-item p {
+    margin: 0;
+    font-weight: 500;
+}
+
+.price-details {
+    border-top: 1px solid #e9ecef;
+    margin-top: 1rem;
+    padding-top: 1rem;
 }
 
 .price-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 0;
-    color: #6c757d;
+    margin-bottom: 0.5rem;
 }
 
-.price-row.final-price {
-    font-size: 1.25rem;
+.price-row.total-row {
     font-weight: 600;
-    color: #212529;
+    font-size: 1.1rem;
+    border-top: 1px solid #e9ecef;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
 }
 
-.amount {
-    font-weight: 500;
+/* Button Styles */
+.summary-actions {
+    display: flex;
+    gap: 1rem;
 }
 
-.actions {
-    margin-top: 2rem;
-}
-
-.btn-light {
-    background: #F8F9FA;
-    border: none;
+.btn-prev {
+    display: none;
 }
 
 .btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 500;
-}
-
-.modal-dialog {
-    max-width: 400px;
-    margin: 1.75rem auto;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 </style>
 {% endblock %}
@@ -244,184 +490,281 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('booking-form');
-    const facilitySelect = document.getElementById('facility_sport');
-    const dateInput = document.getElementById('booking_date');
-    const timeSlotSelect = document.getElementById('time_slot');
-    const bookingSummaryEl = document.getElementById('booking-summary');
-    const summaryModal = new bootstrap.Modal(bookingSummaryEl, {
-        backdrop: true,
-        keyboard: true,
-        focus: true
-    });
-    const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
-    const showSummaryBtn = document.getElementById('show-summary');
-    const confirmBookingBtn = document.getElementById('confirm-booking');
+    let currentStep = 1;
+    let selectedFacility = null;
+    let selectedDate = null;
+    let selectedTimeSlot = null;
     
-    // Handle modal focus management
-    bookingSummaryEl.addEventListener('shown.bs.modal', function() {
-        // Blur inputs to prevent cursor blinking
-        facilitySelect.blur();
-        dateInput.blur();
-        timeSlotSelect.blur();
-        confirmBookingBtn.focus();
-    });
+    const progressBar = document.querySelector('.progress-bar');
+    const prevBtn = document.querySelector('.btn-prev');
+    const nextBtn = document.querySelector('.btn-next');
+    const confirmBtn = document.querySelector('.btn-confirm');
+    const bookingForm = document.getElementById('bookingForm');
+
+    // Initialize date picker
+    initializeDatePicker();
     
-    // Ensure focus is returned when modal is closed
-    bookingSummaryEl.addEventListener('hidden.bs.modal', function() {
-        showSummaryBtn.focus();
+    // Handle facility selection
+    document.querySelectorAll('.facility-card').forEach(card => {
+        card.addEventListener('click', function() {
+            selectFacility(this);
+        });
     });
-    
-    // Trap focus within modal when open
-    bookingSummaryEl.addEventListener('keydown', function(e) {
-        if (e.key === 'Tab') {
-            const focusableElements = bookingSummaryEl.querySelectorAll(
-                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-            );
-            const firstFocusable = focusableElements[0];
-            const lastFocusable = focusableElements[focusableElements.length - 1];
-            
-            if (e.shiftKey) {
-                if (document.activeElement === firstFocusable) {
-                    lastFocusable.focus();
-                    e.preventDefault();
-                }
-            } else {
-                if (document.activeElement === lastFocusable) {
-                    firstFocusable.focus();
-                    e.preventDefault();
-                }
-            }
+
+    // Navigation buttons
+    prevBtn.addEventListener('click', () => {
+        if (currentStep > 1) {
+            goToStep(currentStep - 1);
         }
     });
 
-    // Set minimum date to today
-    const today = new Date().toISOString().split('T')[0];
-    dateInput.min = today;
+    nextBtn.addEventListener('click', () => {
+        if (currentStep < 3) {
+            if (currentStep === 1 && !selectedFacility) {
+                alert('Please select a facility first');
+                return;
+            }
+            if (currentStep === 2 && !selectedDate) {
+                alert('Please select a date first');
+                return;
+            }
+            goToStep(currentStep + 1);
+        }
+    });
+
+    // Initialize date picker
+    function initializeDatePicker() {
+        const dateGrid = document.getElementById('dateGrid');
+        const today = new Date();
+        const dates = [];
+
+        for (let i = 0; i < 14; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+            dates.push(date);
+        }
+
+        dateGrid.innerHTML = dates.map(date => `
+            <div class="date-card" data-date="${date.toISOString().split('T')[0]}">
+                <div class="date-weekday">${date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                <div class="date-day">${date.getDate()}</div>
+                <div class="date-month">${date.toLocaleDateString('en-US', { month: 'short' })}</div>
+            </div>
+        `).join('');
+
+        // Handle date selection
+        dateGrid.querySelectorAll('.date-card').forEach(card => {
+            card.addEventListener('click', function() {
+                selectDate(this);
+            });
+        });
+    }
 
     // Handle facility selection
-    facilitySelect.addEventListener('change', function() {
-        if (dateInput.value) {
-            loadTimeSlots();
-        }
+    function selectFacility(card) {
+        document.querySelectorAll('.facility-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedFacility = {
+            id: card.dataset.id,
+            facilityId: card.dataset.facilityId,
+            name: card.dataset.name,
+            sport: card.dataset.sport,
+            price: parseFloat(card.dataset.price)
+        };
         updateSummary();
-    });
+        nextBtn.disabled = false;
+    }
 
     // Handle date selection
-    dateInput.addEventListener('change', function() {
-        if (facilitySelect.value) {
-            loadTimeSlots();
-        }
+    function selectDate(card) {
+        document.querySelectorAll('.date-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedDate = card.dataset.date;
+        loadTimeSlots();
         updateSummary();
-    });
+        nextBtn.disabled = false;
+    }
 
-    // Handle time slot selection
-    timeSlotSelect.addEventListener('change', updateSummary);
-
-    // Load available time slots
+    // Load time slots
     function loadTimeSlots() {
-        const facilityId = facilitySelect.selectedOptions[0].dataset.facilityId;
-        const date = dateInput.value;
+        if (!selectedFacility || !selectedDate) return;
 
-        if (!facilityId || !date) return;
+        const timeSlotsGrid = document.getElementById('timeSlotsGrid');
+        timeSlotsGrid.innerHTML = '<div class="loading">Loading slots...</div>';
 
-        loadingModal.show();
-        timeSlotSelect.disabled = true;
-
-        fetch(`{% url 'get-slots' %}?date=${date}&facility_id=${facilityId}`)
+        fetch(`/bookings/get-slots/?facility_id=${selectedFacility.facilityId}&date=${selectedDate}`)
             .then(response => response.json())
             .then(data => {
-                timeSlotSelect.innerHTML = '<option value="">Select a time slot...</option>';
-                
-                data.available_slots.forEach(slot => {
-                    if (slot.is_available) {
-                        const option = document.createElement('option');
-                        option.value = slot.id.split('_')[1];  // Extract TimeSlot ID
-                        option.textContent = slot.display_time;
-                        timeSlotSelect.appendChild(option);
-                    }
+                if (data.error) throw new Error(data.error);
+
+                const slots = data.available_slots || [];
+                const slotsHtml = slots.map(slot => {
+                    const isDisabled = slot.is_past || slot.is_lunch || slot.is_booked;
+                    const isEarlyBird = slot.discounted_price < slot.base_price;
+                    const statusClass = isDisabled ? 'disabled' : (isEarlyBird ? 'early-bird' : '');
+                    const price = slot.discounted_price || slot.price;
+
+                    return `
+                        <div class="time-slot ${statusClass}" 
+                             data-slot-id="${slot.id}"
+                             data-time="${slot.display_time}"
+                             data-base-price="${slot.base_price}"
+                             data-price="${slot.discounted_price}"
+                             ${isDisabled ? 'disabled' : ''}>
+                            <div class="time">${slot.display_time}</div>
+                            <div class="price">
+                                ${isEarlyBird ? `
+                                    <div class="original-price"><s>₹${slot.base_price}</s></div>
+                                ` : ''}
+                                <div class="final-price">₹${slot.discounted_price}</div>
+                            </div>
+                            ${isEarlyBird ? `
+                                <span class="early-bird-badge">
+                                    Early Bird: ${slot.discount_percentage}% off
+                                </span>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                timeSlotsGrid.innerHTML = slotsHtml;
+
+                // Handle time slot selection
+                document.querySelectorAll('.time-slot:not(.disabled)').forEach(slot => {
+                    slot.addEventListener('click', function() {
+                        selectTimeSlot(this);
+                    });
                 });
 
-                timeSlotSelect.disabled = false;
-                updateSummary(data.offers);
+                // Show early bird notice if applicable
+                document.querySelector('.early-bird-notice').style.display = 
+                    slots.some(slot => slot.discounted_price < slot.base_price) ? 'block' : 'none';
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error loading time slots. Please try again.');
-            })
-            .finally(() => {
-                loadingModal.hide();
+                timeSlotsGrid.innerHTML = `
+                    <div class="alert alert-danger">
+                        Failed to load time slots. Please try again.
+                    </div>
+                `;
             });
     }
 
-    // Update booking summary with simplified pricing
-    function updateSummary(offers = []) {
-        if (!facilitySelect.value || !dateInput.value || !timeSlotSelect.value) {
-            showSummaryBtn.disabled = true;
-            return;
-        }
-
-        const selectedFacility = facilitySelect.selectedOptions[0];
-        const facilityName = selectedFacility.textContent.split(' - ')[0];
-        const sportName = selectedFacility.textContent.split(' - ')[1].split(' (')[0];
-        const basePrice = parseFloat(selectedFacility.dataset.price);
-        
-        // Update facility and sport
-        document.getElementById('summary-facility-sport').textContent = `${facilityName} - ${sportName}`;
-        
-        // Update date in a more readable format
-        const bookingDate = new Date(dateInput.value);
-        const dateOptions = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
-        document.getElementById('summary-date').textContent = bookingDate.toLocaleDateString('en-US', dateOptions);
-        
-        // Update time
-        document.getElementById('summary-time').textContent = timeSlotSelect.selectedOptions[0].textContent;
-        
-        // Update price details
-        document.getElementById('summary-base-price').textContent = basePrice.toFixed(2);
-
-        // Calculate final price with any applicable offers
-        let finalPrice = basePrice;
-        if (offers && offers.length > 0) {
-            const maxDiscount = Math.max(...offers.map(o => o.discount_percentage));
-            const discountAmount = (basePrice * maxDiscount) / 100;
-            finalPrice = basePrice - discountAmount;
-        }
-
-        // Update final price
-        document.getElementById('summary-final-price').textContent = finalPrice.toFixed(2);
-        showSummaryBtn.disabled = false;
+    // Handle time slot selection
+    function selectTimeSlot(slot) {
+        document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+        slot.classList.add('selected');
+        selectedTimeSlot = {
+            id: slot.dataset.slotId,
+            time: slot.dataset.time,
+            basePrice: parseFloat(slot.dataset.basePrice),
+            price: parseFloat(slot.dataset.price)
+        };
+        updateSummary();
+        confirmBtn.style.display = 'flex';
+        nextBtn.style.display = 'none';
     }
 
-    // Show summary modal
-    showSummaryBtn.addEventListener('click', function() {
-        if (!facilitySelect.value || !dateInput.value || !timeSlotSelect.value) {
-            alert('Please fill in all the required fields');
-            return;
+    // Update booking summary
+    function updateSummary() {
+        // Update facility details
+        const facilityDetails = document.querySelector('.facility-details');
+        if (selectedFacility) {
+            document.getElementById('summaryFacility').textContent = `${selectedFacility.name} - ${selectedFacility.sport}`;
+            facilityDetails.style.display = 'flex';
+            document.getElementById('facilityInput').value = selectedFacility.id;
         }
-        summaryModal.show();
-    });
 
-    // Handle booking confirmation
-    confirmBookingBtn.addEventListener('click', function() {
-        loadingModal.show();
-        summaryModal.hide();
+        // Update date details
+        const dateDetails = document.querySelector('.date-details');
+        if (selectedDate) {
+            const dateObj = new Date(selectedDate);
+            document.getElementById('summaryDate').textContent = dateObj.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            dateDetails.style.display = 'flex';
+            document.getElementById('dateInput').value = selectedDate;
+        }
 
-        const formData = new FormData(form);
-        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        // Update time details
+        const timeDetails = document.querySelector('.time-details');
+        if (selectedTimeSlot) {
+            document.getElementById('summaryTime').textContent = `${selectedTimeSlot.time} IST`;
+            timeDetails.style.display = 'flex';
+            document.getElementById('timeInput').value = selectedTimeSlot.id.split('_')[1];
+        }
 
-        fetch('{% url "booking-create" %}', {
+        // Update price details
+        const priceDetails = document.querySelector('.price-details');
+        if (selectedTimeSlot) {
+            document.getElementById('summaryBasePrice').textContent = selectedTimeSlot.basePrice.toFixed(2);
+            
+            const discountRow = document.querySelector('.discount-row');
+            const discount = selectedTimeSlot.basePrice - selectedTimeSlot.price;
+            if (discount > 0) {
+                document.getElementById('summaryDiscount').textContent = discount.toFixed(2);
+                discountRow.style.display = 'flex';
+            } else {
+                discountRow.style.display = 'none';
+            }
+            
+            document.getElementById('summaryTotalPrice').textContent = selectedTimeSlot.price.toFixed(2);
+            priceDetails.style.display = 'block';
+        }
+    }
+
+    // Navigation functions
+    function goToStep(step) {
+        currentStep = step;
+        
+        // Update progress bar
+        progressBar.style.width = `${((step - 1) / 2) * 100}%`;
+        
+        // Update steps
+        document.querySelectorAll('.step').forEach(s => {
+            const stepNum = parseInt(s.dataset.step);
+            s.classList.remove('active', 'completed');
+            if (stepNum === step) {
+                s.classList.add('active');
+            } else if (stepNum < step) {
+                s.classList.add('completed');
+            }
+        });
+        
+        // Show/hide steps
+        document.querySelectorAll('.booking-step').forEach(s => {
+            s.classList.remove('active');
+        });
+        document.getElementById(`step${step}`).classList.add('active');
+        
+        // Update navigation buttons
+        prevBtn.style.display = step > 1 ? 'flex' : 'none';
+        nextBtn.style.display = step < 3 ? 'flex' : 'none';
+        confirmBtn.style.display = step === 3 && selectedTimeSlot ? 'flex' : 'none';
+    }
+
+    // Handle form submission
+    bookingForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const submitBtn = e.submitter;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+
+        fetch(this.action, {
             method: 'POST',
             body: formData,
             headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': csrftoken
+                'X-Requested-With': 'XMLHttpRequest'
             }
         })
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                loadingModal.hide();
                 window.location.href = data.redirect_url;
             } else {
                 throw new Error(data.message || 'Booking failed');
@@ -429,8 +772,9 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error creating booking. Please try again.');
-            loadingModal.hide();
+            alert(error.message || 'Failed to create booking. Please try again.');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Confirm Booking';
         });
     });
 });

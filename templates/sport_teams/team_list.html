@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Teams - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-3">Teams</h1>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'sport_teams:create_team' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-2"></i>Create New Team
+            </a>
+        </div>
+    </div>
+
+    {% if teams %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for team in teams %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            {% if team.logo %}
+                                <img src="{{ team.logo.url }}" alt="{{ team.name }} Logo" class="card-img-top mb-3" style="height: 150px; object-fit: contain;">
+                            {% else %}
+                                <div class="text-center mb-3">
+                                    <i class="fas fa-users fa-5x text-secondary"></i>
+                                </div>
+                            {% endif %}
+                            <h5 class="card-title">{{ team.name }}</h5>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    Captain: {{ team.captain.get_full_name|default:team.captain.username }}
+                                </small>
+                            </p>
+                            <a href="{% url 'sport_teams:team_detail' team.slug %}" class="btn btn-outline-primary">View Team</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-users fa-4x text-secondary mb-3"></i>
+            <h3>No Teams Yet</h3>
+            <p class="text-muted">Be the first to create a team!</p>
+            <a href="{% url 'sport_teams:create_team' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-2"></i>Create New Team
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

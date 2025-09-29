@@ -437,8 +437,90 @@
                             </div>
                         {% endif %}
                     </div>
-                    
 
+                    <!-- Sport Preferences Section -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="card-title mb-0">Sport Preferences</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.preferred_sport.id_for_label }}" class="form-label">Preferred Sport</label>
+                                    {{ form.preferred_sport }}
+                                    {% if form.preferred_sport.help_text %}
+                                        <div class="help-text">{{ form.preferred_sport.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.playing_side.id_for_label }}" class="form-label">Playing Side</label>
+                                    {{ form.playing_side }}
+                                    {% if form.playing_side.help_text %}
+                                        <div class="help-text">{{ form.playing_side.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cricket Settings -->
+                    <div id="cricket-settings" class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h4 class="card-title mb-0">Cricket Settings</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.batting_style.id_for_label }}" class="form-label">Batting Style</label>
+                                    {{ form.batting_style }}
+                                    {% if form.batting_style.help_text %}
+                                        <div class="help-text">{{ form.batting_style.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.bowling_style.id_for_label }}" class="form-label">Bowling Style</label>
+                                    {{ form.bowling_style }}
+                                    {% if form.bowling_style.help_text %}
+                                        <div class="help-text">{{ form.bowling_style.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="form-check mb-3">
+                                {{ form.is_wicketkeeper }}
+                                <label for="{{ form.is_wicketkeeper.id_for_label }}" class="form-check-label">
+                                    I am a wicketkeeper
+                                </label>
+                                {% if form.is_wicketkeeper.help_text %}
+                                    <div class="help-text">{{ form.is_wicketkeeper.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Football Settings -->
+                    <div id="football-settings" class="card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h4 class="card-title mb-0">Football Settings</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.football_position.id_for_label }}" class="form-label">Position</label>
+                                    {{ form.football_position }}
+                                    {% if form.football_position.help_text %}
+                                        <div class="help-text">{{ form.football_position.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.football_style.id_for_label }}" class="form-label">Playing Style</label>
+                                    {{ form.football_style }}
+                                    {% if form.football_style.help_text %}
+                                        <div class="help-text">{{ form.football_style.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -453,6 +535,7 @@
 
 {% block extra_js %}
 <script>
+// Profile picture preview
 document.getElementById('{{ form.profile_picture.id_for_label }}').addEventListener('change', function(e) {
     if (e.target.files && e.target.files[0]) {
         const reader = new FileReader();
@@ -461,6 +544,34 @@ document.getElementById('{{ form.profile_picture.id_for_label }}').addEventListe
         };
         reader.readAsDataURL(e.target.files[0]);
     }
+});
+
+// Sport settings visibility toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const preferredSportSelect = document.getElementById('{{ form.preferred_sport.id_for_label }}');
+    const cricketSettings = document.getElementById('cricket-settings');
+    const footballSettings = document.getElementById('football-settings');
+
+    function toggleSportSettings() {
+        const selectedSport = preferredSportSelect.value;
+        
+        if (selectedSport === 'cricket') {
+            cricketSettings.style.display = 'block';
+            footballSettings.style.display = 'none';
+        } else if (selectedSport === 'football') {
+            cricketSettings.style.display = 'none';
+            footballSettings.style.display = 'block';
+        } else {
+            cricketSettings.style.display = 'none';
+            footballSettings.style.display = 'none';
+        }
+    }
+
+    // Initial toggle based on current value
+    toggleSportSettings();
+
+    // Toggle on change
+    preferredSportSelect.addEventListener('change', toggleSportSettings);
 });
 </script>
 {% endblock %}
